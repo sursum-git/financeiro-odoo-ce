@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: ${POSTGRES_CONTAINER:-edi-postgres}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-odoo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo-web:
+    image: odoo:19
+    container_name: ${ODOO_WEB_CONTAINER:-edi-odoo-web}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8069}:8069"
+    volumes:
+      - /proj_edi_odoo:/proj_edi_odoo
+      - odoo_web_data:/var/lib/odoo
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+    command: ["bash", "/proj_edi_odoo/deploy/start-web.sh"]
+    restart: unless-stopped
+
+  odoo-jobs:
+    image: odoo:19
+    container_name: ${ODOO_JOBS_CONTAINER:-edi-odoo-jobs}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${JOBS_PORT:-8071}:8071"
+    volumes:
+      - /proj_edi_odoo:/proj_edi_odoo
+      - odoo_jobs_data:/var/lib/odoo
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+    command: ["bash", "/proj_edi_odoo/deploy/start-jobs.sh"]
+    restart: unless-stopped
+
+  odoo-tests:
+    image: odoo:19
+    container_name: ${ODOO_TESTS_CONTAINER:-edi-odoo-tests}
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["test"]
+    volumes:
+      - /proj_edi_odoo:/proj_edi_odoo
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_TEST_DB: ${ODOO_TEST_DB:-odoo_test}
+      ODOO_TEST_MODULES: ${ODOO_TEST_MODULES:-edi_framework,queue_job}
+      ODOO_TEST_TAGS: ${ODOO_TEST_TAGS:-}
+      ODOO_TEST_HTTP_PORT: ${ODOO_TEST_HTTP_PORT:-8090}
+    command: ["bash", "/proj_edi_odoo/deploy/run-tests.sh"]
+    restart: "no"
+
+volumes:
+  postgres_data:
+  odoo_web_data:
+  odoo_jobs_data:

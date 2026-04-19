@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edi_transform_rule_tree" model="ir.ui.view">
+        <field name="name">edi.transform.rule.tree</field>
+        <field name="model">edi.transform.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="rule_type"/>
+                <field name="direction"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_edi_transform_rule_form" model="ir.ui.view">
+        <field name="name">edi.transform.rule.form</field>
+        <field name="model">edi.transform.rule</field>
+        <field name="arch" type="xml">
+            <form string="Regra de Transformação">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="rule_type"/>
+                        <field name="direction"/>
+                        <field name="param_schema_json"/>
+                        <field name="allow_safe_eval"/>
+                        <field name="description"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_edi_transform_rule" model="ir.actions.act_window">
+        <field name="name">Regras de Transformação</field>
+        <field name="res_model">edi.transform.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="view_edi_extract_map_tree" model="ir.ui.view">
+        <field name="name">edi.extract.map.tree</field>
+        <field name="model">edi.extract.map</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="layout_id"/>
+                <field name="record_id"/>
+                <field name="field_id"/>
+                <field name="source_type"/>
+                <field name="source_path"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_edi_extract_map" model="ir.actions.act_window">
+        <field name="name">Mapas de Extração</field>
+        <field name="res_model">edi.extract.map</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="view_edi_return_map_tree" model="ir.ui.view">
+        <field name="name">edi.return.map.tree</field>
+        <field name="model">edi.return.map</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="layout_id"/>
+                <field name="record_id"/>
+                <field name="field_id"/>
+                <field name="apply_mode"/>
+                <field name="target_model"/>
+                <field name="target_field"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_edi_return_map" model="ir.actions.act_window">
+        <field name="name">Mapas de Retorno</field>
+        <field name="res_model">edi.return.map</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_edi_value_map" model="ir.actions.act_window">
+        <field name="name">Mapas de Valor</field>
+        <field name="res_model">edi.value.map</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_edi_data_source" model="ir.actions.act_window">
+        <field name="name">Fontes de Dados</field>
+        <field name="res_model">edi.data.source</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_edi_data_target" model="ir.actions.act_window">
+        <field name="name">Destinos de Dados</field>
+        <field name="res_model">edi.data.target</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_edi_transform_rule" name="Regras de Transformação" parent="edi_framework_menu_config" action="action_edi_transform_rule" sequence="50"/>
+    <menuitem id="menu_edi_extract_map" name="Mapas de Extração" parent="edi_framework_menu_config" action="action_edi_extract_map" sequence="60"/>
+    <menuitem id="menu_edi_return_map" name="Mapas de Retorno" parent="edi_framework_menu_config" action="action_edi_return_map" sequence="70"/>
+    <menuitem id="menu_edi_value_map" name="Mapas de Valor" parent="edi_framework_menu_config" action="action_edi_value_map" sequence="80"/>
+    <menuitem id="menu_edi_data_source" name="Fontes de Dados" parent="edi_framework_menu_config" action="action_edi_data_source" sequence="90"/>
+    <menuitem id="menu_edi_data_target" name="Destinos de Dados" parent="edi_framework_menu_config" action="action_edi_data_target" sequence="100"/>
+</odoo>

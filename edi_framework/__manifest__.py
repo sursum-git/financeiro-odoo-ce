@@ -1,0 +1,26 @@
+{
+    "name": "EDI Framework",
+    "summary": "Declarative EDI framework foundation",
+    "version": "19.0.1.0.0",
+    "category": "Tools",
+    "license": "LGPL-3",
+    "author": "OpenAI",
+    "depends": [
+        "base",
+        "mail",
+        "queue_job",
+    ],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/edi_transform_rule_data.xml",
+        "data/edi_demo_data.xml",
+        "views/edi_menu_views.xml",
+        "views/edi_backend_views.xml",
+        "views/edi_layout_views.xml",
+        "views/edi_mapping_views.xml",
+        "views/edi_operation_views.xml",
+        "views/edi_demo_reset_wizard_views.xml",
+    ],
+    "installable": True,
+    "application": True,
+}

@@ -1,0 +1,25 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edi_backend_user,edi.backend user,model_edi_backend,base.group_user,1,1,1,1
+access_edi_process_user,edi.process user,model_edi_process,base.group_user,1,1,1,1
+access_edi_exchange_type_user,edi.exchange.type user,model_edi_exchange_type,base.group_user,1,1,1,1
+access_edi_exchange_state_user,edi.exchange.state user,model_edi_exchange_state,base.group_user,1,1,1,1
+access_edi_layout_user,edi.layout user,model_edi_layout,base.group_user,1,1,1,1
+access_edi_layout_source_user,edi.layout.source user,model_edi_layout_source,base.group_user,1,1,1,1
+access_edi_layout_record_user,edi.layout.record user,model_edi_layout_record,base.group_user,1,1,1,1
+access_edi_layout_field_user,edi.layout.field user,model_edi_layout_field,base.group_user,1,1,1,1
+access_edi_transform_rule_user,edi.transform.rule user,model_edi_transform_rule,base.group_user,1,1,1,1
+access_edi_value_map_user,edi.value.map user,model_edi_value_map,base.group_user,1,1,1,1
+access_edi_extract_map_user,edi.extract.map user,model_edi_extract_map,base.group_user,1,1,1,1
+access_edi_return_map_user,edi.return.map user,model_edi_return_map,base.group_user,1,1,1,1
+access_edi_map_rule_line_user,edi.map.rule.line user,model_edi_map_rule_line,base.group_user,1,1,1,1
+access_edi_data_source_user,edi.data.source user,model_edi_data_source,base.group_user,1,1,1,1
+access_edi_data_target_user,edi.data.target user,model_edi_data_target,base.group_user,1,1,1,1
+access_edi_exchange_user,edi.exchange user,model_edi_exchange,base.group_user,1,1,1,1
+access_edi_exchange_api_user,edi.exchange.api user,model_edi_exchange_api,base.group_user,1,1,1,1
+access_edi_exchange_file_user,edi.exchange.file user,model_edi_exchange_file,base.group_user,1,1,1,1
+access_edi_exchange_payload_user,edi.exchange.payload user,model_edi_exchange_payload,base.group_user,1,1,1,1
+access_edi_exchange_source_snapshot_user,edi.exchange.source.snapshot user,model_edi_exchange_source_snapshot,base.group_user,1,1,1,1
+access_edi_transaction_user,edi.transaction user,model_edi_transaction,base.group_user,1,1,1,1
+access_edi_transaction_event_user,edi.transaction.event user,model_edi_transaction_event,base.group_user,1,1,1,1
+access_edi_transaction_log_user,edi.transaction.log user,model_edi_transaction_log,base.group_user,1,1,1,1
+access_edi_demo_reset_wizard_user,edi.demo.reset.wizard user,model_edi_demo_reset_wizard,base.group_user,1,1,1,1

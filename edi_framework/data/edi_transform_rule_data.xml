@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="edi_transform_rule_cast_str" model="edi.transform.rule">
+        <field name="name">Cast para Texto</field>
+        <field name="code">cast_str</field>
+        <field name="rule_type">cast</field>
+    </record>
+    <record id="edi_transform_rule_cast_int" model="edi.transform.rule">
+        <field name="name">Cast para Inteiro</field>
+        <field name="code">cast_int</field>
+        <field name="rule_type">cast</field>
+    </record>
+    <record id="edi_transform_rule_cast_float" model="edi.transform.rule">
+        <field name="name">Cast para Decimal</field>
+        <field name="code">cast_float</field>
+        <field name="rule_type">cast</field>
+    </record>
+    <record id="edi_transform_rule_cast_bool" model="edi.transform.rule">
+        <field name="name">Cast para Booleano</field>
+        <field name="code">cast_bool</field>
+        <field name="rule_type">cast</field>
+    </record>
+    <record id="edi_transform_rule_date_format" model="edi.transform.rule">
+        <field name="name">Formatar Data</field>
+        <field name="code">date_format</field>
+        <field name="rule_type">date</field>
+    </record>
+    <record id="edi_transform_rule_multiply" model="edi.transform.rule">
+        <field name="name">Multiplicar</field>
+        <field name="code">multiply</field>
+        <field name="rule_type">math</field>
+    </record>
+    <record id="edi_transform_rule_divide" model="edi.transform.rule">
+        <field name="name">Dividir</field>
+        <field name="code">divide</field>
+        <field name="rule_type">math</field>
+    </record>
+    <record id="edi_transform_rule_round" model="edi.transform.rule">
+        <field name="name">Arredondar</field>
+        <field name="code">round</field>
+        <field name="rule_type">math</field>
+    </record>
+    <record id="edi_transform_rule_substring" model="edi.transform.rule">
+        <field name="name">Substring</field>
+        <field name="code">substring</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_left" model="edi.transform.rule">
+        <field name="name">Esquerda</field>
+        <field name="code">left</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_right" model="edi.transform.rule">
+        <field name="name">Direita</field>
+        <field name="code">right</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_split" model="edi.transform.rule">
+        <field name="name">Split</field>
+        <field name="code">split</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_replace" model="edi.transform.rule">
+        <field name="name">Substituir</field>
+        <field name="code">replace</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_strip" model="edi.transform.rule">
+        <field name="name">Trim</field>
+        <field name="code">strip</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_upper" model="edi.transform.rule">
+        <field name="name">Maiúsculas</field>
+        <field name="code">upper</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_lower" model="edi.transform.rule">
+        <field name="name">Minúsculas</field>
+        <field name="code">lower</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_remove_non_digits" model="edi.transform.rule">
+        <field name="name">Remover Não Dígitos</field>
+        <field name="code">remove_non_digits</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_zfill" model="edi.transform.rule">
+        <field name="name">Preencher com Zeros</field>
+        <field name="code">zfill</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_pad_left" model="edi.transform.rule">
+        <field name="name">Padding à Esquerda</field>
+        <field name="code">pad_left</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_pad_right" model="edi.transform.rule">
+        <field name="name">Padding à Direita</field>
+        <field name="code">pad_right</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_truncate" model="edi.transform.rule">
+        <field name="name">Truncar</field>
+        <field name="code">truncate</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_concat" model="edi.transform.rule">
+        <field name="name">Concatenar</field>
+        <field name="code">concat</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_regex_extract" model="edi.transform.rule">
+        <field name="name">Extrair por Regex</field>
+        <field name="code">regex_extract</field>
+        <field name="rule_type">string</field>
+    </record>
+    <record id="edi_transform_rule_value_map" model="edi.transform.rule">
+        <field name="name">Mapa de Valores</field>
+        <field name="code">value_map</field>
+        <field name="rule_type">mapping</field>
+    </record>
+    <record id="edi_transform_rule_safe_eval" model="edi.transform.rule">
+        <field name="name">Safe Eval</field>
+        <field name="code">safe_eval</field>
+        <field name="rule_type">python</field>
+        <field name="allow_safe_eval">True</field>
+    </record>
+</odoo>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="edi_framework_menu_root" name="EDI Framework" sequence="50"/>
+    <menuitem id="edi_framework_menu_config" name="Configurações" parent="edi_framework_menu_root" sequence="10"/>
+    <menuitem id="edi_framework_menu_operations" name="Operações" parent="edi_framework_menu_root" sequence="20"/>
+</odoo>
