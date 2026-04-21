@@ -4,6 +4,8 @@ Suite financeira modular para Odoo CE, implementada em 10 fases, cobrindo base c
 
 Tambem inclui cadastro de codigos de retencao por empresa e associacao de multiplas retencoes por contato, com percentual e contato recebedor do valor retido.
 
+Tambem inclui base multimoeda para portadores, tesouraria, receber, pagar, caixa, banco, conciliacao e relatorios.
+
 ## Objetivo
 
 Este projeto organiza o domínio financeiro em addons independentes, mas integrados, para manter:
@@ -24,6 +26,34 @@ Este projeto organiza o domínio financeiro em addons independentes, mas integra
 - `custom_treasury_reconciliation`: conciliação entre extrato e tesouraria, incluindo ajustes
 - `custom_account_receivable_collection`: cobrança operacional, roteiros, cobradores, recebimento em campo e prestação de contas
 - `custom_financial_reports`: consultas e relatórios analíticos somente leitura
+
+## Funcionalidade Multimoeda
+
+O projeto passou a tratar moeda operacional e moeda da empresa em toda a trilha principal do financeiro.
+
+Base implementada:
+
+- `financial.portador` possui moeda propria
+- `treasury.movement` guarda moeda da transacao, valor na moeda da transacao, moeda da empresa, taxa de cambio e valor convertido
+- `receivable.settlement` e `payable.payment` guardam totais na moeda da transacao e na moeda da empresa
+- `treasury.cash.session` segue a moeda do portador do caixa
+- `treasury.bank.account` e `treasury.bank.statement.line` possuem moeda propria
+- `treasury.reconciliation` exige mesma moeda entre extrato e movimento
+- `financial.report.helper` filtra e agrupa por moeda
+
+Regras operacionais atuais:
+
+- uma liquidacao ou pagamento nao pode misturar parcelas de moedas diferentes
+- a integracao financeira cria movimento de tesouraria na moeda da transacao
+- caixa usa a moeda do portador associado ao caixa
+- extrato bancario usa a moeda configurada na conta bancaria
+- conciliacao so pode vincular extrato e movimento quando ambos estiverem na mesma moeda
+- relatorios de tesouraria permitem leitura por moeda da transacao e por valor convertido
+
+Limite atual:
+
+- a base multimoeda ja esta implementada, mas o projeto ainda nao faz apuracao contabil automatica de variacao cambial
+- ganho/perda cambial continua como proxima etapa funcional
 
 ## Princípios de Arquitetura
 
@@ -104,6 +134,10 @@ Resultado da validacao integrada:
 O checklist funcional esta em:
 
 - [FINANCIAL_HOMOLOGATION_CHECKLIST.md](./FINANCIAL_HOMOLOGATION_CHECKLIST.md)
+
+As regras operacionais de multimoeda estao em:
+
+- [MULTICURRENCY_GUIDE.md](./MULTICURRENCY_GUIDE.md)
 
 ## Status
 

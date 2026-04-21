@@ -17,6 +17,17 @@ Este roteiro serve para homologacao funcional da suite financeira no Odoo CE. O 
 - `custom_account_receivable_collection`
 - `custom_financial_reports`
 
+## Escopo Adicional de Multimoeda
+
+- moeda por portador
+- moeda por conta bancaria
+- liquidacao em moeda estrangeira
+- pagamento em moeda estrangeira
+- integracao financeira preservando moeda da transacao
+- caixa em moeda diferente da moeda-base
+- conciliacao bloqueando moedas divergentes
+- relatorios filtrados por moeda
+
 ## Preparacao
 
 ### Pre-condicoes
@@ -45,6 +56,11 @@ Este roteiro serve para homologacao funcional da suite financeira no Odoo CE. O 
 - 2 formas de pagamento
 - 2 modalidades
 - 1 cobrador
+- 2 moedas extras alem da moeda-base da empresa
+- 1 portador em moeda estrangeira
+- 1 conta bancaria em moeda estrangeira
+- 1 cliente com titulo em moeda estrangeira
+- 1 fornecedor com titulo em moeda estrangeira
 
 ## Casos de Teste
 
@@ -125,6 +141,31 @@ Evidencia:
 - IDs dos movimentos
 - saldo final esperado e obtido
 
+### CT-02A Tesouraria Multimoeda
+
+Pre-condicao:
+- portador em moeda estrangeira criado
+- taxa cambial cadastrada para a data do teste
+
+Passos:
+1. Criar movimento de entrada em moeda estrangeira.
+2. Criar movimento de saida em moeda estrangeira.
+3. Consultar o valor do movimento na moeda da transacao.
+4. Consultar o valor convertido na moeda da empresa.
+5. Consultar saldo por moeda.
+
+Resultado esperado:
+- movimento grava a moeda da transacao corretamente
+- taxa de cambio e valor convertido ficam preenchidos
+- saldo por moeda nao mistura moedas diferentes
+- saldo consolidado em moeda da empresa usa o valor convertido
+
+Evidencia:
+- moeda do movimento
+- taxa usada
+- valor na moeda da transacao
+- valor na moeda da empresa
+
 ### CT-03 Transferencia e Estorno
 
 Pre-condicao:
@@ -166,6 +207,28 @@ Evidencia:
 - numero da sessao
 - valores de abertura, movimentacao e fechamento
 
+### CT-04A Caixa Multimoeda
+
+Pre-condicao:
+- caixa vinculado a portador em moeda estrangeira
+
+Passos:
+1. Abrir sessao de caixa em moeda estrangeira.
+2. Registrar suprimento.
+3. Registrar sangria.
+4. Fechar sessao.
+5. Criar prestacao de contas para outro portador da mesma moeda.
+
+Resultado esperado:
+- sessao usa a moeda do portador do caixa
+- os movimentos da sessao sao criados na mesma moeda
+- prestacao de contas nao aceita portador de destino em moeda diferente
+
+Evidencia:
+- moeda da sessao
+- moedas dos movimentos
+- validacao de moeda divergente, se testada
+
 ### CT-05 Banco e Importacao de Extrato
 
 Pre-condicao:
@@ -186,6 +249,27 @@ Evidencia:
 - arquivo usado
 - quantidade de linhas importadas
 - saldo antes e depois
+
+### CT-05A Banco Multimoeda
+
+Pre-condicao:
+- conta bancaria em moeda estrangeira criada
+- taxa cambial cadastrada para a data do extrato
+
+Passos:
+1. Importar extrato da conta bancaria em moeda estrangeira.
+2. Verificar a moeda das linhas importadas.
+3. Verificar o valor convertido para a moeda da empresa.
+
+Resultado esperado:
+- linha de extrato usa a moeda da conta bancaria
+- valor convertido fica disponivel para conciliacao e analise
+- importacao continua sem alterar saldo automaticamente
+
+Evidencia:
+- moeda da conta bancaria
+- moeda das linhas
+- valor convertido das linhas
 
 ### CT-06 Contas a Receber
 
@@ -209,6 +293,30 @@ Evidencia:
 - novo titulo renegociado
 - saldos antes e depois
 
+### CT-06A Receber Multimoeda
+
+Pre-condicao:
+- cliente com titulo em moeda estrangeira
+- taxa cambial cadastrada
+
+Passos:
+1. Criar titulo a receber em moeda estrangeira.
+2. Registrar liquidacao.
+3. Verificar bruto, retido e liquido na moeda da transacao.
+4. Verificar os mesmos totais na moeda da empresa.
+5. Tentar criar liquidacao com parcelas de moedas diferentes.
+
+Resultado esperado:
+- liquidacao herda a moeda do titulo
+- totais convertidos ficam preenchidos
+- o sistema bloqueia mistura de moedas na mesma liquidacao
+
+Evidencia:
+- moeda do titulo
+- moeda da liquidacao
+- totais na moeda da transacao
+- totais na moeda da empresa
+
 ### CT-07 Contas a Pagar
 
 Pre-condicao:
@@ -229,6 +337,30 @@ Evidencia:
 - numero do agendamento
 - numero do pagamento
 - saldos antes e depois
+
+### CT-07A Pagar Multimoeda
+
+Pre-condicao:
+- fornecedor com titulo em moeda estrangeira
+- taxa cambial cadastrada
+
+Passos:
+1. Criar titulo a pagar em moeda estrangeira.
+2. Registrar pagamento.
+3. Verificar bruto, retido e liquido na moeda da transacao.
+4. Verificar os mesmos totais na moeda da empresa.
+5. Tentar criar pagamento com parcelas de moedas diferentes.
+
+Resultado esperado:
+- pagamento herda a moeda do titulo
+- totais convertidos ficam preenchidos
+- o sistema bloqueia mistura de moedas no mesmo pagamento
+
+Evidencia:
+- moeda do titulo
+- moeda do pagamento
+- totais na moeda da transacao
+- totais na moeda da empresa
 
 ### CT-08 Integracao Financeira
 
@@ -253,6 +385,27 @@ Evidencia:
 - IDs dos movimentos
 - origem e modelo vinculados
 
+### CT-08A Integracao Financeira Multimoeda
+
+Pre-condicao:
+- receber ou pagar em moeda estrangeira com conta ou portador compativel
+
+Passos:
+1. Aplicar liquidacao em moeda estrangeira.
+2. Verificar a moeda do movimento de tesouraria gerado.
+3. Aplicar pagamento em moeda estrangeira.
+4. Verificar a moeda do movimento de tesouraria gerado.
+
+Resultado esperado:
+- a integracao preserva a moeda da transacao
+- o movimento de tesouraria guarda tambem o valor convertido
+
+Evidencia:
+- moeda do documento de origem
+- moeda do movimento gerado
+- valor na moeda da transacao
+- valor na moeda da empresa
+
 ### CT-09 Conciliacao
 
 Pre-condicao:
@@ -275,6 +428,28 @@ Evidencia:
 - linhas conciliadas
 - linha ajustada
 - movimento de ajuste
+
+### CT-09A Conciliacao Multimoeda
+
+Pre-condicao:
+- extrato em moeda estrangeira
+- movimento de tesouraria em moeda estrangeira
+- movimento adicional em moeda diferente para teste negativo
+
+Passos:
+1. Conciliar extrato e movimento na mesma moeda.
+2. Tentar conciliar extrato com movimento de moeda diferente.
+3. Criar ajuste em linha de extrato estrangeira.
+
+Resultado esperado:
+- a conciliacao so aceita match na mesma moeda
+- a tentativa com moeda divergente e bloqueada
+- ajuste nasce na moeda do extrato
+
+Evidencia:
+- moeda da linha de extrato
+- moeda do movimento conciliado
+- mensagem de validacao no caso divergente
 
 ### CT-10 Cobranca em Campo
 
@@ -333,6 +508,28 @@ Evidencia:
 - totalizadores exibidos
 - confirmacao de que os dados nao foram alterados
 
+### CT-11A Relatorios Multimoeda
+
+Pre-condicao:
+- massa de movimentos, titulos e extratos em pelo menos duas moedas
+
+Passos:
+1. Abrir relatorios de tesouraria filtrando uma moeda especifica.
+2. Abrir saldo por conta agrupado por moeda.
+3. Abrir saldo por portador agrupado por moeda.
+4. Abrir relatorios de receber e pagar filtrando moeda.
+5. Abrir itens conciliados filtrando moeda.
+
+Resultado esperado:
+- filtros por moeda funcionam corretamente
+- agrupamentos por moeda separam os valores da transacao
+- tesouraria mostra tambem o valor convertido na moeda da empresa
+
+Evidencia:
+- filtros usados
+- agrupamentos retornados
+- totais por moeda
+
 ### CT-12 Permissoes
 
 Pre-condicao:
@@ -362,6 +559,8 @@ Evidencia:
 - conciliacao e cobranca rastreaveis
 - relatorios somente leitura
 - menus, nomes e comportamento aprovados pelo usuario funcional
+- regras de moeda aprovadas pelo usuario funcional
+- cenarios multimoeda executados sem mistura indevida de moedas
 
 ## Registro de Pendencias
 
@@ -380,5 +579,7 @@ Use este formato para cada pendencia encontrada:
 
 - executar um fluxo completo de receber do inicio ao fim
 - executar um fluxo completo de pagar do inicio ao fim
+- executar um fluxo completo multimoeda de receber do inicio ao fim
+- executar um fluxo completo multimoeda de pagar do inicio ao fim
 - validar nomenclaturas e permissões com o usuario chave
 - consolidar pendencias antes de promover para producao
