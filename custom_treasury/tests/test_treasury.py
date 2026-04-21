@@ -1,5 +1,7 @@
 if __name__.startswith("odoo.addons."):
+    from odoo import fields
     from odoo.tests.common import TransactionCase
+    from odoo.exceptions import ValidationError
 
     class TestTreasury(TransactionCase):
         @classmethod
@@ -29,13 +31,14 @@ if __name__.startswith("odoo.addons."):
                 }
             )
 
-        def _create_account(self, code="CTA1", name="Conta Financeira"):
+        def _create_account(self, code="CTA1", name="Conta Financeira", company=None):
+            company = company or self.env.company
             return self.env["treasury.account"].create(
                 {
                     "name": name,
                     "code": code,
                     "type": "treasury",
-                    "company_id": self.env.company.id,
+                    "company_id": company.id,
                 }
             )
 
@@ -147,3 +150,65 @@ if __name__.startswith("odoo.addons."):
             service.post_movement(in_move)
             service.post_movement(out_move)
             self.assertEqual(service.compute_balance(account=account), 100.0)
+
+        def test_intercompany_loan_generates_two_movements(self):
+            borrower_company = self.env["res.company"].create(
+                {
+                    "name": "Filial Mutuo",
+                    "parent_id": self.env.company.id,
+                    "currency_id": self.env.company.currency_id.id,
+                }
+            )
+            lender_account = self._create_account(code="MUT_OUT", company=self.env.company)
+            borrower_account = self._create_account(
+                code="MUT_IN",
+                name="Conta Filial",
+                company=borrower_company,
+            )
+            loan = self.env["treasury.intercompany.loan"].create(
+                {
+                    "name": "Mutuo Grupo",
+                    "date": fields.Date.context_today(self),
+                    "lender_company_id": self.env.company.id,
+                    "borrower_company_id": borrower_company.id,
+                    "source_account_id": lender_account.id,
+                    "target_account_id": borrower_account.id,
+                    "currency_id": self.env.company.currency_id.id,
+                    "amount": 150.0,
+                }
+            )
+            loan.action_confirm()
+            self.assertEqual(loan.state, "confirmed")
+            self.assertEqual(loan.out_movement_id.state, "posted")
+            self.assertEqual(loan.in_movement_id.state, "posted")
+            self.assertEqual(loan.out_movement_id.company_id, self.env.company)
+            self.assertEqual(loan.in_movement_id.company_id, borrower_company)
+            self.assertEqual(loan.out_movement_id.type, "saida")
+            self.assertEqual(loan.in_movement_id.type, "entrada")
+
+        def test_intercompany_loan_blocks_company_outside_group(self):
+            outsider_company = self.env["res.company"].create(
+                {
+                    "name": "Empresa Externa",
+                    "currency_id": self.env.company.currency_id.id,
+                }
+            )
+            lender_account = self._create_account(code="MUT_EXT_OUT", company=self.env.company)
+            outsider_account = self._create_account(
+                code="MUT_EXT_IN",
+                name="Conta Externa",
+                company=outsider_company,
+            )
+            with self.assertRaises(ValidationError):
+                self.env["treasury.intercompany.loan"].create(
+                    {
+                        "name": "Mutuo Externo",
+                        "date": fields.Date.context_today(self),
+                        "lender_company_id": self.env.company.id,
+                        "borrower_company_id": outsider_company.id,
+                        "source_account_id": lender_account.id,
+                        "target_account_id": outsider_account.id,
+                        "currency_id": self.env.company.currency_id.id,
+                        "amount": 90.0,
+                    }
+                )

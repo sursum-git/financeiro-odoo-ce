@@ -15,6 +15,7 @@
         "views/treasury_account_views.xml",
         "views/treasury_account_modality_views.xml",
         "views/treasury_movement_views.xml",
+        "views/treasury_intercompany_loan_views.xml",
         "views/treasury_transfer_views.xml",
     ],
     "installable": True,
