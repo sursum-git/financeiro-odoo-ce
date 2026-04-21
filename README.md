@@ -2,6 +2,8 @@
 
 Suite financeira modular para Odoo CE, implementada em 10 fases, cobrindo base cadastral, tesouraria, caixa, bancos, contas a receber, contas a pagar, integração financeira, conciliação, cobrança e relatórios.
 
+Tambem inclui cadastro de codigos de retencao por empresa e associacao de multiplas retencoes por contato, com percentual e contato recebedor do valor retido.
+
 ## Objetivo
 
 Este projeto organiza o domínio financeiro em addons independentes, mas integrados, para manter:
@@ -12,7 +14,7 @@ Este projeto organiza o domínio financeiro em addons independentes, mas integra
 
 ## Addons Entregues
 
-- `custom_financial_base`: cadastros base, portadores, formas de pagamento, modalidades, históricos, motivos e parâmetros
+- `custom_financial_base`: cadastros base, portadores, formas de pagamento, modalidades, históricos, motivos, parâmetros e codigos de retencao por empresa
 - `custom_treasury`: núcleo da tesouraria, contas financeiras, movimentos, transferências, saldo e estornos
 - `custom_treasury_cash`: operação de caixa, sessões, suprimento, sangria e prestação de contas
 - `custom_treasury_bank`: bancos, contas bancárias e importação de extrato
@@ -40,6 +42,24 @@ Cada addon segue o padrão:
 - `views/`
 - `security/`
 - `tests/`
+
+## Funcionalidade de Retencoes
+
+No modulo `custom_financial_base` foi adicionada uma estrutura para retenções:
+
+- tabela `financial.withholding.code` para manter codigos de retencao por empresa
+- tabela `res.partner.withholding.line` para associar, em cada contato:
+  - empresa
+  - codigo de retencao
+  - percentual de retencao
+  - contato que recebe o valor retido
+
+Regras atuais:
+
+- codigo de retencao unico por empresa
+- uma linha por contato + empresa + codigo
+- percentual entre `0` e `100`
+- multiplos codigos por contato
 
 ## Requisitos
 

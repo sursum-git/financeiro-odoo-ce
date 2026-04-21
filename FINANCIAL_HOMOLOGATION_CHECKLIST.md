@@ -60,15 +60,49 @@ Passos:
 4. Criar historicos financeiros.
 5. Criar motivos de movimento.
 6. Criar parametros financeiros por empresa.
+7. Criar codigos de retencao por empresa.
+8. Abrir um contato e associar mais de um codigo de retencao.
+9. Informar percentual de retencao e contato recebedor em cada linha.
 
 Resultado esperado:
 - todos os cadastros gravam sem erro
 - codigos unicos por empresa sao respeitados
 - portador do cobrador fica disponivel para cobranca
+- codigos de retencao ficam segregados por empresa
+- um mesmo contato pode ter varias retencoes
+- cada linha guarda percentual e contato recebedor do valor retido
 
 Evidencia:
 - capturas das telas de cadastro
 - lista dos codigos criados
+
+### CT-01A Retencoes por Contato
+
+Pre-condicao:
+- pelo menos 2 codigos de retencao criados para a mesma empresa
+- contato principal cadastrado
+- contatos recebedores cadastrados
+
+Passos:
+1. Abrir o cadastro do contato principal.
+2. Inserir uma linha de retencao com o primeiro codigo.
+3. Informar percentual de retencao.
+4. Informar o contato que recebe o valor retido.
+5. Inserir uma segunda linha com outro codigo.
+6. Tentar repetir o mesmo codigo para a mesma empresa.
+7. Tentar informar percentual maior que `100`.
+
+Resultado esperado:
+- o contato aceita varias linhas com codigos diferentes
+- a mesma combinacao contato + empresa + codigo nao pode se repetir
+- percentual invalido e bloqueado
+- o contato recebedor fica gravado em cada linha
+
+Evidencia:
+- contato testado
+- codigos associados
+- percentual de cada linha
+- mensagens de validacao exibidas
 
 ### CT-02 Tesouraria Basica
 
