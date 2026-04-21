@@ -31,6 +31,24 @@ if __name__.startswith("odoo.addons."):
                     "company_id": cls.env.company.id,
                 }
             )
+            cls.withholding_supplier = cls.env["res.partner"].create({"name": "Favorecido Retencao Integracao"})
+            cls.withholding_code = cls.env["financial.withholding.code"].create(
+                {
+                    "name": "Retencao Integracao",
+                    "code": "RETINT",
+                    "company_id": cls.env.company.id,
+                    "minimum_payment_amount": 50.0,
+                }
+            )
+            cls.env["res.partner.withholding.line"].create(
+                {
+                    "partner_id": cls.partner.id,
+                    "company_id": cls.env.company.id,
+                    "withholding_code_id": cls.withholding_code.id,
+                    "retention_percent": 10.0,
+                    "supplier_contact_id": cls.withholding_supplier.id,
+                }
+            )
 
         def _create_receivable_settlement(self, with_target=True):
             service = self.env["receivable.service"]
@@ -107,6 +125,7 @@ if __name__.startswith("odoo.addons."):
             )
             self.assertEqual(event.state, "done")
             self.assertEqual(event.treasury_movement_id.type, "entrada")
+            self.assertEqual(event.treasury_movement_id.amount, 90.0)
 
         def test_payable_payment_generates_treasury_exit(self):
             payment = self._create_payable_payment()
@@ -117,6 +136,7 @@ if __name__.startswith("odoo.addons."):
             )
             self.assertEqual(event.state, "done")
             self.assertEqual(event.treasury_movement_id.type, "saida")
+            self.assertEqual(event.treasury_movement_id.amount, 72.0)
 
         def test_failed_integration_blocks_receivable_apply(self):
             settlement = self._create_receivable_settlement(with_target=False)

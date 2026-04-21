@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import fields, models
 from odoo.exceptions import ValidationError
 
@@ -5,6 +7,58 @@ from odoo.exceptions import ValidationError
 class PayableService(models.AbstractModel):
     _name = "payable.service"
     _description = "Payable Service"
+
+    def _get_month_limits(self, target_date):
+        target_date = fields.Date.to_date(target_date)
+        month_start = target_date.replace(day=1)
+        next_month = (month_start + timedelta(days=32)).replace(day=1)
+        month_end = next_month - timedelta(days=1)
+        return month_start, month_end
+
+    def _prepare_payable_withholding_vals(self, payment):
+        payment.ensure_one()
+        partner_lines = payment.partner_id.withholding_line_ids.filtered(
+            lambda line: line.company_id == payment.company_id
+        )
+        if not partner_lines:
+            return []
+        month_start, month_end = self._get_month_limits(payment.date)
+        prior_payments = self.env["payable.payment"].search(
+            [
+                ("partner_id", "=", payment.partner_id.id),
+                ("company_id", "=", payment.company_id.id),
+                ("state", "=", "applied"),
+                ("date", ">=", month_start),
+                ("date", "<=", month_end),
+                ("id", "!=", payment.id),
+            ]
+        )
+        monthly_gross_total = sum(prior_payments.mapped("gross_amount_total")) + payment.gross_amount_total
+        vals_list = []
+        for partner_line in partner_lines:
+            code = partner_line.withholding_code_id
+            if monthly_gross_total < code.minimum_payment_amount:
+                continue
+            monthly_withholding_total = monthly_gross_total * (partner_line.retention_percent / 100.0)
+            if monthly_withholding_total < code.minimum_retention_amount:
+                continue
+            previous_amount = sum(
+                prior_payments.mapped("withholding_line_ids")
+                .filtered(lambda line: line.withholding_code_id == code)
+                .mapped("amount")
+            )
+            current_amount = monthly_withholding_total - previous_amount
+            if current_amount <= 0:
+                continue
+            vals_list.append(
+                {
+                    "partner_withholding_line_id": partner_line.id,
+                    "base_amount": monthly_gross_total,
+                    "previously_withheld_amount": previous_amount,
+                    "amount": current_amount,
+                }
+            )
+        return vals_list
 
     def open_title(self, vals):
         title = self.env["payable.title"].create(vals)
@@ -49,9 +103,17 @@ class PayableService(models.AbstractModel):
         payment.ensure_one()
         if payment.state != "draft":
             raise ValidationError("Only draft payments can be applied.")
+        payment.withholding_line_ids.unlink()
         for line in payment.line_ids:
             if line.total_amount > line.installment_id.amount_open:
                 raise ValidationError("Payment amount cannot exceed the installment open amount.")
+        withholding_vals_list = self._prepare_payable_withholding_vals(payment)
+        for vals in withholding_vals_list:
+            self.env["payable.payment.withholding"].create(dict(vals, payment_id=payment.id))
+        if payment.withholding_amount_total > payment.gross_amount_total:
+            raise ValidationError(
+                "The monthly withholding due exceeds the current payment gross amount."
+            )
         if "financial.integration.service" in self.env.registry:
             self.env["financial.integration.service"].create_treasury_exit_from_payable_payment(payment)
         payment.state = "applied"

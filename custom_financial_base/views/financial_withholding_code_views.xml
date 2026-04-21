@@ -7,6 +7,9 @@
             <list>
                 <field name="code"/>
                 <field name="name"/>
+                <field name="due_date"/>
+                <field name="minimum_retention_amount"/>
+                <field name="minimum_payment_amount"/>
                 <field name="company_id"/>
                 <field name="active"/>
             </list>
@@ -22,8 +25,13 @@
                     <group>
                         <field name="code"/>
                         <field name="name"/>
+                        <field name="due_date"/>
                         <field name="company_id"/>
                         <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="minimum_retention_amount"/>
+                        <field name="minimum_payment_amount"/>
                     </group>
                     <group>
                         <field name="description"/>

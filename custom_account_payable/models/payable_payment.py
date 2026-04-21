@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class PayablePayment(models.Model):
@@ -34,3 +34,38 @@ class PayablePayment(models.Model):
         "payment_id",
         string="Payment Lines",
     )
+    withholding_line_ids = fields.One2many(
+        "payable.payment.withholding",
+        "payment_id",
+        string="Withholding Lines",
+        readonly=True,
+    )
+    gross_amount_total = fields.Monetary(
+        compute="_compute_totals",
+        store=True,
+        currency_field="currency_id",
+    )
+    withholding_amount_total = fields.Monetary(
+        compute="_compute_totals",
+        store=True,
+        currency_field="currency_id",
+    )
+    net_amount_total = fields.Monetary(
+        compute="_compute_totals",
+        store=True,
+        currency_field="currency_id",
+    )
+    currency_id = fields.Many2one(
+        related="company_id.currency_id",
+        store=True,
+        readonly=True,
+    )
+
+    @api.depends("line_ids.total_amount", "withholding_line_ids.amount")
+    def _compute_totals(self):
+        for payment in self:
+            gross = sum(payment.line_ids.mapped("total_amount"))
+            withheld = sum(payment.withholding_line_ids.mapped("amount"))
+            payment.gross_amount_total = gross
+            payment.withholding_amount_total = withheld
+            payment.net_amount_total = gross - withheld

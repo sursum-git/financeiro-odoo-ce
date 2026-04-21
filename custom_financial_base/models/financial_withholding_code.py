@@ -10,11 +10,27 @@ class FinancialWithholdingCode(models.Model):
     name = fields.Char(required=True, index=True)
     code = fields.Char(required=True, index=True)
     description = fields.Text()
+    due_date = fields.Date(string="Due Date")
+    minimum_retention_amount = fields.Monetary(
+        string="Minimum Retention Amount",
+        currency_field="currency_id",
+        default=0.0,
+    )
+    minimum_payment_amount = fields.Monetary(
+        string="Minimum Payment Amount",
+        currency_field="currency_id",
+        default=0.0,
+    )
     company_id = fields.Many2one(
         "res.company",
         required=True,
         default=lambda self: self.env.company,
         index=True,
+    )
+    currency_id = fields.Many2one(
+        related="company_id.currency_id",
+        store=True,
+        readonly=True,
     )
     active = fields.Boolean(default=True)
     partner_line_ids = fields.One2many(
@@ -33,6 +49,14 @@ class FinancialWithholdingCode(models.Model):
         for record in self:
             if not record.code.strip():
                 raise ValidationError("The withholding code cannot be empty.")
+
+    @api.constrains("minimum_retention_amount", "minimum_payment_amount")
+    def _check_minimum_amounts(self):
+        for record in self:
+            if record.minimum_retention_amount < 0:
+                raise ValidationError("The minimum retention amount cannot be negative.")
+            if record.minimum_payment_amount < 0:
+                raise ValidationError("The minimum payment amount cannot be negative.")
 
 
 class ResPartnerWithholdingLine(models.Model):

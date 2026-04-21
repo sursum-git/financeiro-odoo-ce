@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ReceivableSettlement(models.Model):
@@ -34,3 +34,38 @@ class ReceivableSettlement(models.Model):
         "settlement_id",
         string="Settlement Lines",
     )
+    withholding_line_ids = fields.One2many(
+        "receivable.settlement.withholding",
+        "settlement_id",
+        string="Withholding Lines",
+        readonly=True,
+    )
+    gross_amount_total = fields.Monetary(
+        compute="_compute_totals",
+        store=True,
+        currency_field="currency_id",
+    )
+    withholding_amount_total = fields.Monetary(
+        compute="_compute_totals",
+        store=True,
+        currency_field="currency_id",
+    )
+    net_amount_total = fields.Monetary(
+        compute="_compute_totals",
+        store=True,
+        currency_field="currency_id",
+    )
+    currency_id = fields.Many2one(
+        related="company_id.currency_id",
+        store=True,
+        readonly=True,
+    )
+
+    @api.depends("line_ids.total_amount", "withholding_line_ids.amount")
+    def _compute_totals(self):
+        for settlement in self:
+            gross = sum(settlement.line_ids.mapped("total_amount"))
+            withheld = sum(settlement.withholding_line_ids.mapped("amount"))
+            settlement.gross_amount_total = gross
+            settlement.withholding_amount_total = withheld
+            settlement.net_amount_total = gross - withheld

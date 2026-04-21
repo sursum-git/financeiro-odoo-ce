@@ -92,9 +92,15 @@ if __name__.startswith("odoo.addons."):
                     "name": "IRRF Servicos",
                     "code": "IRRF",
                     "company_id": self.env.company.id,
+                    "due_date": "2026-12-31",
+                    "minimum_retention_amount": 10.0,
+                    "minimum_payment_amount": 25.0,
                 }
             )
             self.assertEqual(code.code, "IRRF")
+            self.assertEqual(str(code.due_date), "2026-12-31")
+            self.assertEqual(code.minimum_retention_amount, 10.0)
+            self.assertEqual(code.minimum_payment_amount, 25.0)
 
         def test_assign_multiple_withholding_lines_to_partner(self):
             partner = self.env["res.partner"].create({"name": "Fornecedor Com Retencao"})

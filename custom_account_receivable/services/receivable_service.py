@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import fields, models
 from odoo.exceptions import ValidationError
 
@@ -5,6 +7,58 @@ from odoo.exceptions import ValidationError
 class ReceivableService(models.AbstractModel):
     _name = "receivable.service"
     _description = "Receivable Service"
+
+    def _get_month_limits(self, target_date):
+        target_date = fields.Date.to_date(target_date)
+        month_start = target_date.replace(day=1)
+        next_month = (month_start + timedelta(days=32)).replace(day=1)
+        month_end = next_month - timedelta(days=1)
+        return month_start, month_end
+
+    def _prepare_receivable_withholding_vals(self, settlement):
+        settlement.ensure_one()
+        partner_lines = settlement.partner_id.withholding_line_ids.filtered(
+            lambda line: line.company_id == settlement.company_id
+        )
+        if not partner_lines:
+            return []
+        month_start, month_end = self._get_month_limits(settlement.date)
+        prior_settlements = self.env["receivable.settlement"].search(
+            [
+                ("partner_id", "=", settlement.partner_id.id),
+                ("company_id", "=", settlement.company_id.id),
+                ("state", "=", "applied"),
+                ("date", ">=", month_start),
+                ("date", "<=", month_end),
+                ("id", "!=", settlement.id),
+            ]
+        )
+        monthly_gross_total = sum(prior_settlements.mapped("gross_amount_total")) + settlement.gross_amount_total
+        vals_list = []
+        for partner_line in partner_lines:
+            code = partner_line.withholding_code_id
+            if monthly_gross_total < code.minimum_payment_amount:
+                continue
+            monthly_withholding_total = monthly_gross_total * (partner_line.retention_percent / 100.0)
+            if monthly_withholding_total < code.minimum_retention_amount:
+                continue
+            previous_amount = sum(
+                prior_settlements.mapped("withholding_line_ids")
+                .filtered(lambda line: line.withholding_code_id == code)
+                .mapped("amount")
+            )
+            current_amount = monthly_withholding_total - previous_amount
+            if current_amount <= 0:
+                continue
+            vals_list.append(
+                {
+                    "partner_withholding_line_id": partner_line.id,
+                    "base_amount": monthly_gross_total,
+                    "previously_withheld_amount": previous_amount,
+                    "amount": current_amount,
+                }
+            )
+        return vals_list
 
     def open_title(self, vals):
         title = self.env["receivable.title"].create(vals)
@@ -43,9 +97,19 @@ class ReceivableService(models.AbstractModel):
         settlement.ensure_one()
         if settlement.state != "draft":
             raise ValidationError("Only draft settlements can be applied.")
+        settlement.withholding_line_ids.unlink()
         for line in settlement.line_ids:
             if line.total_amount > line.installment_id.amount_open:
                 raise ValidationError("Settlement amount cannot exceed the installment open amount.")
+        withholding_vals_list = self._prepare_receivable_withholding_vals(settlement)
+        for vals in withholding_vals_list:
+            self.env["receivable.settlement.withholding"].create(
+                dict(vals, settlement_id=settlement.id)
+            )
+        if settlement.withholding_amount_total > settlement.gross_amount_total:
+            raise ValidationError(
+                "The monthly withholding due exceeds the current settlement gross amount."
+            )
         if "financial.integration.service" in self.env.registry:
             self.env["financial.integration.service"].create_treasury_entry_from_receivable_settlement(settlement)
         settlement.state = "applied"

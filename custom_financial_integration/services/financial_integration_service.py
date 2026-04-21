@@ -68,7 +68,7 @@ class FinancialIntegrationService(models.AbstractModel):
                 raise ValidationError(
                     "Receivable settlement requires a target account or portador for integration."
                 )
-            amount = sum(settlement.line_ids.mapped("total_amount"))
+            amount = settlement.net_amount_total or sum(settlement.line_ids.mapped("total_amount"))
             movement = self._movement_service.create_movement(
                 {
                     "name": settlement.name,
@@ -110,7 +110,7 @@ class FinancialIntegrationService(models.AbstractModel):
                 raise ValidationError(
                     "Payable payment requires a source account or portador for integration."
                 )
-            amount = sum(payment.line_ids.mapped("total_amount"))
+            amount = payment.net_amount_total or sum(payment.line_ids.mapped("total_amount"))
             movement = self._movement_service.create_movement(
                 {
                     "name": payment.name,

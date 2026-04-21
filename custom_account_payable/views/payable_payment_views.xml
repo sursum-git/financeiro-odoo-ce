@@ -8,6 +8,9 @@
                 <field name="name"/>
                 <field name="date"/>
                 <field name="partner_id"/>
+                <field name="gross_amount_total"/>
+                <field name="withholding_amount_total"/>
+                <field name="net_amount_total"/>
                 <field name="payment_method_id"/>
                 <field name="state"/>
             </list>
@@ -33,10 +36,27 @@
                         <field name="state"/>
                     </group>
                     <group>
+                        <field name="gross_amount_total" readonly="1"/>
+                        <field name="withholding_amount_total" readonly="1"/>
+                        <field name="net_amount_total" readonly="1"/>
+                    </group>
+                    <group>
                         <field name="notes"/>
                     </group>
                     <group>
                         <field name="line_ids"/>
+                    </group>
+                    <group>
+                        <field name="withholding_line_ids" readonly="1">
+                            <list>
+                                <field name="withholding_code_id"/>
+                                <field name="supplier_contact_id"/>
+                                <field name="retention_percent"/>
+                                <field name="base_amount"/>
+                                <field name="previously_withheld_amount"/>
+                                <field name="amount"/>
+                            </list>
+                        </field>
                     </group>
                 </sheet>
             </form>
