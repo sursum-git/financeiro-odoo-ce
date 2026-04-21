@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class ReceivableTitle(models.Model):
@@ -51,6 +52,21 @@ class ReceivableTitle(models.Model):
         "title_id",
         string="Settlement Lines",
     )
+
+    def action_open_renegotiation_wizard(self):
+        self.ensure_one()
+        if self.state not in {"open", "partial"} or self.amount_open <= 0:
+            raise ValidationError("Only open titles with outstanding balance can be renegotiated.")
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Renegotiate Title",
+            "res_model": "receivable.renegotiation.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_source_title_id": self.id,
+            },
+        }
 
     @api.depends("installment_ids.amount_open", "installment_ids.state")
     def _compute_amounts(self):

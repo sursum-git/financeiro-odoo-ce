@@ -18,6 +18,8 @@
         "views/receivable_installment_views.xml",
         "views/receivable_settlement_views.xml",
         "views/receivable_interest_rule_views.xml",
+        "views/receivable_renegotiation_views.xml",
+        "views/receivable_renegotiation_wizard_views.xml",
     ],
     "installable": True,
     "application": False,

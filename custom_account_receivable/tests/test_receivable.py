@@ -178,6 +178,46 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(renegotiation.new_title_id.amount_total, 250.0)
             self.assertEqual(title.state, "renegotiated")
 
+        def test_wizard_creates_operational_renegotiation(self):
+            title, installments = self._create_title_with_installments()
+            service = self.env["receivable.service"]
+            settlement = service.create_settlement(
+                {
+                    "name": "Liquidacao Antes da Renegociacao",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                },
+                [{"installment_id": installments[0].id, "principal_amount": 50.0}],
+            )
+            service.apply_settlement(settlement)
+            self.assertEqual(title.amount_open, 250.0)
+
+            action = title.action_open_renegotiation_wizard()
+            wizard = self.env[action["res_model"]].with_context(action["context"]).create({})
+            wizard.installment_line_ids.unlink()
+            self.env["receivable.renegotiation.wizard.line"].create(
+                {
+                    "wizard_id": wizard.id,
+                    "sequence": 1,
+                    "due_date": "2026-08-10",
+                    "amount": 125.0,
+                }
+            )
+            self.env["receivable.renegotiation.wizard.line"].create(
+                {
+                    "wizard_id": wizard.id,
+                    "sequence": 2,
+                    "due_date": "2026-09-10",
+                    "amount": 125.0,
+                }
+            )
+            result = wizard.action_confirm()
+            renegotiation = self.env["receivable.renegotiation"].browse(result["res_id"])
+            self.assertEqual(renegotiation.state, "done")
+            self.assertEqual(renegotiation.new_title_id.amount_total, 250.0)
+            self.assertEqual(len(renegotiation.new_title_id.installment_ids), 2)
+            self.assertEqual(title.state, "renegotiated")
+
         def test_monthly_withholding_is_cumulative_on_receipts(self):
             service = self.env["receivable.service"]
             first_title, first_installment = self._create_single_installment_title(

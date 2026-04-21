@@ -20,6 +20,15 @@
         <field name="model">receivable.title</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button
+                        name="action_open_renegotiation_wizard"
+                        string="Renegociar"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state not in ('open', 'partial')"
+                    />
+                </header>
                 <sheet>
                     <group>
                         <field name="name"/>
