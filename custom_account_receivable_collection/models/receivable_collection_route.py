@@ -31,3 +31,16 @@ class ReceivableCollectionRoute(models.Model):
         "route_id",
         string="Assignments",
     )
+
+    def action_open_assign_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Atribuir Titulos",
+            "res_model": "receivable.collection.assign.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_route_id": self.id,
+            },
+        }

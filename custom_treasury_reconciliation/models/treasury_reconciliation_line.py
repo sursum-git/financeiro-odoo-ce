@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class TreasuryReconciliationLine(models.Model):
@@ -10,6 +10,8 @@ class TreasuryReconciliationLine(models.Model):
     MSG_LINHA_UNICA = "Uma linha de extrato so pode estar vinculada a uma linha de conciliacao."
     MSG_LINHA_JA_CONCILIADA = "Esta linha de extrato ja esta conciliada."
     MSG_MOEDA_DIVERGENTE = "A conciliacao exige extrato e movimento na mesma moeda."
+    MSG_MOVIMENTO_OBRIGATORIO = "Informe um movimento para concluir a conciliacao manual."
+    MSG_STATUS_ALTERACAO_INVALIDO = "Somente linhas pendentes ou divergentes podem ser processadas."
 
     reconciliation_id = fields.Many2one(
         "treasury.reconciliation",
@@ -81,3 +83,35 @@ class TreasuryReconciliationLine(models.Model):
         for line in self.filtered(lambda rec: rec.statement_line_id and rec.movement_id):
             if line.statement_line_id.currency_id != line.movement_id.currency_id:
                 raise ValidationError(self.MSG_MOEDA_DIVERGENTE)
+
+    def action_match_selected(self):
+        for line in self:
+            if line.status not in {"pending", "divergent"}:
+                raise UserError(self.MSG_STATUS_ALTERACAO_INVALIDO)
+            if not line.movement_id:
+                raise UserError(self.MSG_MOVIMENTO_OBRIGATORIO)
+            self.env["treasury.reconciliation.service"].match_line(
+                line.statement_line_id,
+                line.movement_id,
+                reconciliation=line.reconciliation_id,
+            )
+        return True
+
+    def action_create_adjustment(self):
+        for line in self:
+            if line.status not in {"pending", "divergent"}:
+                raise UserError(self.MSG_STATUS_ALTERACAO_INVALIDO)
+            self.env["treasury.reconciliation.service"].create_adjustment(
+                line.reconciliation_id,
+                line.statement_line_id,
+                movement=line.movement_id,
+                notes=line.notes,
+            )
+        return True
+
+    def action_mark_divergent(self):
+        for line in self:
+            if line.status not in {"pending", "divergent"}:
+                raise UserError(self.MSG_STATUS_ALTERACAO_INVALIDO)
+            line.status = "divergent"
+        return True

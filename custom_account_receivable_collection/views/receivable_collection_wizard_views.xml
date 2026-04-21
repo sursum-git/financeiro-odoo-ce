@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_receivable_collection_assign_wizard_form" model="ir.ui.view">
+        <field name="name">receivable.collection.assign.wizard.form</field>
+        <field name="model">receivable.collection.assign.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="route_id"/>
+                        <field name="company_id"/>
+                        <field name="agent_id"/>
+                    </group>
+                    <group>
+                        <field name="installment_ids" widget="many2many_tags" domain="[('state', 'in', ['open', 'partial']), ('title_id.company_id', '=', company_id)]"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Confirmar" type="object" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_receivable_collection_field_wizard_form" model="ir.ui.view">
+        <field name="name">receivable.collection.field.wizard.form</field>
+        <field name="model">receivable.collection.field.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="assignment_id"/>
+                        <field name="company_id"/>
+                        <field name="partner_id"/>
+                        <field name="currency_id"/>
+                    </group>
+                    <group>
+                        <field name="amount_open"/>
+                        <field name="payment_method_id"/>
+                        <field name="date"/>
+                    </group>
+                    <group>
+                        <field name="principal_amount"/>
+                        <field name="interest_amount"/>
+                        <field name="fine_amount"/>
+                        <field name="discount_amount"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Confirmar" type="object" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

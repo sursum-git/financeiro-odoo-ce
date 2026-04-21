@@ -149,3 +149,31 @@ class TreasuryCashSession(models.Model):
             if session.state == "closed":
                 raise UserError(self.MSG_SESSAO_FECHADA_SEM_CANCELAMENTO)
             session.state = "cancelled"
+
+    def action_open_supply_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Registrar Suprimento",
+            "res_model": "treasury.cash.operation.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_session_id": self.id,
+                "default_operation_type": "supply",
+            },
+        }
+
+    def action_open_withdrawal_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Registrar Sangria",
+            "res_model": "treasury.cash.operation.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_session_id": self.id,
+                "default_operation_type": "withdrawal",
+            },
+        }

@@ -112,10 +112,20 @@ class ReceivableCollectionService(models.AbstractModel):
                 "settlement_ids": [(6, 0, settlements.ids)],
             }
         )
-        target_portador = target_cash_box.portador_id if target_cash_box else False
+        return self.confirm_accountability(accountability)
+
+    def confirm_accountability(self, accountability):
+        accountability.ensure_one()
+        if not accountability.settlement_ids:
+            raise ValidationError(self.MSG_EXIGE_LIQUIDACOES)
+        if accountability.target_cash_box_id and not accountability.target_cash_box_id.portador_id:
+            raise ValidationError(self.MSG_CAIXA_DESTINO_EXIGE_PORTADOR)
+        target_portador = (
+            accountability.target_cash_box_id.portador_id if accountability.target_cash_box_id else False
+        )
         out_move, in_move = self.env["treasury.cash.service"].create_accountability(
             source_portador=accountability.source_portador_id,
-            target_account=target_account,
+            target_account=accountability.target_account_id,
             target_portador=target_portador,
             amount=accountability.amount,
             company=accountability.company_id,
@@ -131,7 +141,7 @@ class ReceivableCollectionService(models.AbstractModel):
             }
         )
         assignments = self.env["receivable.collection.assignment"].search(
-            [("settlement_id", "in", settlements.ids)]
+            [("settlement_id", "in", accountability.settlement_ids.ids)]
         )
         assignments.write(
             {

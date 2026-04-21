@@ -94,3 +94,16 @@ class ReceivableCollectionAssignment(models.Model):
     def _compute_amount_collected(self):
         for assignment in self:
             assignment.amount_collected = sum(assignment.settlement_id.line_ids.mapped("total_amount"))
+
+    def action_open_field_collection_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Registrar Cobranca em Campo",
+            "res_model": "receivable.collection.field.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_assignment_id": self.id,
+            },
+        }

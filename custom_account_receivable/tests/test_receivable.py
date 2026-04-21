@@ -214,6 +214,28 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(installments[0].state, "partial")
             self.assertEqual(title.state, "partial")
 
+        def test_apply_settlement_via_model_action(self):
+            _title, installments = self._create_title_with_installments()
+            service = self.env["receivable.service"]
+            settlement = service.create_settlement(
+                {
+                    "name": "Liquidacao Via Botao",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "payment_method_id": self.payment_method.id,
+                    "portador_id": self.portador.id,
+                    "target_account_id": self.account.id,
+                },
+                [
+                    {
+                        "installment_id": installments[0].id,
+                        "principal_amount": 25.0,
+                    }
+                ],
+            )
+            settlement.action_apply()
+            self.assertEqual(settlement.state, "applied")
+
         def test_update_open_amount(self):
             title, installments = self._create_title_with_installments()
             service = self.env["receivable.service"]

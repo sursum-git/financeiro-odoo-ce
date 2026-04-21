@@ -63,7 +63,17 @@ class TreasuryReconciliationService(models.AbstractModel):
             line_vals["reconciliation_id"] = reconciliation.id
         else:
             raise ValidationError(self.MSG_CONCILIACAO_OBRIGATORIA)
-        line = self.env["treasury.reconciliation.line"].create(line_vals)
+        line = self.env["treasury.reconciliation.line"].search(
+            [
+                ("reconciliation_id", "=", reconciliation.id),
+                ("statement_line_id", "=", statement_line.id),
+            ],
+            limit=1,
+        )
+        if line:
+            line.write(line_vals)
+        else:
+            line = self.env["treasury.reconciliation.line"].create(line_vals)
         statement_line.write({"is_reconciled": True, "movement_id": movement.id})
         movement.with_context(skip_post_lock=True).write({"is_reconciled": True})
         return line
@@ -106,16 +116,25 @@ class TreasuryReconciliationService(models.AbstractModel):
             }
         )
         self._movement_service.post_movement(adjustment)
-        line = self.env["treasury.reconciliation.line"].create(
-            {
-                "reconciliation_id": reconciliation.id,
-                "statement_line_id": statement_line.id,
-                "movement_id": movement.id if movement else False,
-                "status": "adjusted",
-                "notes": notes or self.MSG_AJUSTE_CRIADO,
-                "adjustment_movement_id": adjustment.id,
-            }
+        line_vals = {
+            "reconciliation_id": reconciliation.id,
+            "statement_line_id": statement_line.id,
+            "movement_id": movement.id if movement else False,
+            "status": "adjusted",
+            "notes": notes or self.MSG_AJUSTE_CRIADO,
+            "adjustment_movement_id": adjustment.id,
+        }
+        line = self.env["treasury.reconciliation.line"].search(
+            [
+                ("reconciliation_id", "=", reconciliation.id),
+                ("statement_line_id", "=", statement_line.id),
+            ],
+            limit=1,
         )
+        if line:
+            line.write(line_vals)
+        else:
+            line = self.env["treasury.reconciliation.line"].create(line_vals)
         statement_line.write({"is_reconciled": True, "movement_id": adjustment.id})
         adjustment.with_context(skip_post_lock=True).write({"is_reconciled": True})
         return line

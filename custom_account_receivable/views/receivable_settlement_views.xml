@@ -26,6 +26,11 @@
         <field name="model">receivable.settlement</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_apply" string="Aplicar" type="object" invisible="state != 'draft'"/>
+                    <button name="action_cancel" string="Cancelar" type="object" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="name"/>
@@ -39,7 +44,6 @@
                         <field name="portador_id"/>
                         <field name="target_account_id"/>
                         <field name="currency_id"/>
-                        <field name="state"/>
                     </group>
                     <group>
                         <field name="exchange_rate" readonly="1"/>

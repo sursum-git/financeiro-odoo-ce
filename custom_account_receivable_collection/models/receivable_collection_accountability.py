@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class ReceivableCollectionAccountability(models.Model):
@@ -21,6 +21,9 @@ class ReceivableCollectionAccountability(models.Model):
     )
     MSG_LIQUIDACAO_MOEDA_PORTADOR = (
         "A moeda das liquidacoes deve ser igual a moeda do portador do cobrador."
+    )
+    MSG_CONFIRMAR_SOMENTE_RASCUNHO = (
+        "Somente prestacoes de contas em rascunho podem ser confirmadas."
     )
 
     name = fields.Char(required=True, index=True)
@@ -118,3 +121,10 @@ class ReceivableCollectionAccountability(models.Model):
                 raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_UNICA)
             if currencies and accountability.currency_id and currencies[0] != accountability.currency_id:
                 raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_PORTADOR)
+
+    def action_confirm(self):
+        for accountability in self:
+            if accountability.state != "draft":
+                raise UserError(self.MSG_CONFIRMAR_SOMENTE_RASCUNHO)
+            self.env["receivable.collection.service"].confirm_accountability(accountability)
+        return True

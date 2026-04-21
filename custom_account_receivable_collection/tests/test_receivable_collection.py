@@ -87,6 +87,24 @@ class TestReceivableCollection(TransactionCase):
         self.assertEqual(assignment.partner_id, self.partner)
         self.assertEqual(assignment.state, "assigned")
 
+    def test_assign_title_via_wizard(self):
+        wizard = self.env["receivable.collection.assign.wizard"].with_context(
+            default_route_id=self.route.id
+        ).create(
+            {
+                "route_id": self.route.id,
+                "agent_id": self.agent.id,
+                "installment_ids": [(6, 0, self.installment.ids)],
+            }
+        )
+        wizard.action_confirm()
+        assignment = self.env["receivable.collection.assignment"].search(
+            [("route_id", "=", self.route.id), ("installment_id", "=", self.installment.id)],
+            limit=1,
+        )
+        self.assertTrue(assignment)
+        self.assertEqual(assignment.state, "assigned")
+
     def test_register_field_collection(self):
         assignment = self.collection_service.assign_titles_to_agent(
             self.route,
@@ -100,6 +118,23 @@ class TestReceivableCollection(TransactionCase):
         self.assertEqual(settlement.state, "applied")
         self.assertEqual(settlement.portador_id, self.agent_portador)
         self.assertEqual(assignment.state, "collected")
+
+    def test_register_field_collection_via_wizard(self):
+        assignment = self.collection_service.assign_titles_to_agent(
+            self.route,
+            self.agent,
+            self.installment,
+        )
+        wizard = self.env["receivable.collection.field.wizard"].create(
+            {
+                "assignment_id": assignment.id,
+                "payment_method_id": self.payment_method.id,
+                "principal_amount": 100.0,
+            }
+        )
+        wizard.action_confirm()
+        self.assertEqual(assignment.state, "collected")
+        self.assertTrue(assignment.settlement_id)
 
     def test_execute_accountability(self):
         assignment = self.collection_service.assign_titles_to_agent(
@@ -121,6 +156,29 @@ class TestReceivableCollection(TransactionCase):
         self.assertEqual(assignment.state, "accounted")
         self.assertTrue(accountability.out_movement_id)
         self.assertTrue(accountability.in_movement_id)
+
+    def test_confirm_accountability_via_model_action(self):
+        assignment = self.collection_service.assign_titles_to_agent(
+            self.route,
+            self.agent,
+            self.installment,
+        )
+        settlement = self.collection_service.register_field_collection(
+            assignment,
+            self.payment_method,
+        )
+        accountability = self.env["receivable.collection.accountability"].create(
+            {
+                "name": "Prestacao via Botao",
+                "agent_id": self.agent.id,
+                "date": "2026-04-21",
+                "target_cash_box_id": self.cash_box.id,
+                "settlement_ids": [(6, 0, settlement.ids)],
+            }
+        )
+        accountability.action_confirm()
+        self.assertEqual(accountability.state, "done")
+        self.assertEqual(assignment.state, "accounted")
 
     def test_transfer_agent_portador_balance(self):
         assignment = self.collection_service.assign_titles_to_agent(

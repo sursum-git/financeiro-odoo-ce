@@ -19,6 +19,11 @@
         <field name="model">treasury.reconciliation</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_suggest_matches" string="Carregar e Sugerir" type="object" invisible="state == 'done'"/>
+                    <button name="action_finalize" string="Finalizar" type="object" invisible="state != 'in_progress'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="name"/>
@@ -28,7 +33,6 @@
                     <group>
                         <field name="date_start"/>
                         <field name="date_end"/>
-                        <field name="state"/>
                     </group>
                     <group>
                         <field name="notes"/>
@@ -54,6 +58,37 @@
                 <field name="difference_amount"/>
                 <field name="adjustment_movement_id"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_treasury_reconciliation_line_form" model="ir.ui.view">
+        <field name="name">treasury.reconciliation.line.form</field>
+        <field name="model">treasury.reconciliation.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_match_selected" string="Conciliar" type="object" invisible="status not in ('pending','divergent')"/>
+                    <button name="action_create_adjustment" string="Gerar Ajuste" type="object" invisible="status not in ('pending','divergent')"/>
+                    <button name="action_mark_divergent" string="Marcar Divergencia" type="object" invisible="status not in ('pending','divergent')"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="reconciliation_id" readonly="1"/>
+                        <field name="statement_line_id" readonly="1"/>
+                        <field name="movement_id"/>
+                    </group>
+                    <group>
+                        <field name="currency_id" readonly="1"/>
+                        <field name="movement_currency_id" readonly="1"/>
+                        <field name="difference_amount" readonly="1"/>
+                        <field name="adjustment_movement_id" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 

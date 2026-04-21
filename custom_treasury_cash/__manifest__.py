@@ -15,6 +15,7 @@
         "views/treasury_cash_box_views.xml",
         "views/treasury_cash_session_views.xml",
         "views/treasury_cash_accountability_views.xml",
+        "views/treasury_cash_operation_wizard_views.xml",
     ],
     "installable": True,
     "application": False,

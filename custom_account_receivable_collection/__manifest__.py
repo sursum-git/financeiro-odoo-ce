@@ -18,6 +18,7 @@
         "views/receivable_collection_route_views.xml",
         "views/receivable_collection_assignment_views.xml",
         "views/receivable_collection_accountability_views.xml",
+        "views/receivable_collection_wizard_views.xml",
     ],
     "installable": True,
     "application": False,

@@ -148,6 +148,30 @@ if __name__.startswith("odoo.addons."):
             self.assertTrue(line.adjustment_movement_id)
             self.assertTrue(self.statement_import.line_ids[1].is_reconciled)
 
+        def test_reconciliation_actions_flow(self):
+            reconciliation = self.env["treasury.reconciliation"].create(
+                {
+                    "name": "Conciliacao UI",
+                    "company_id": self.env.company.id,
+                    "bank_account_id": self.bank_account.id,
+                    "date_start": "2026-04-01",
+                    "date_end": "2026-04-30",
+                }
+            )
+            reconciliation.action_suggest_matches()
+            self.assertEqual(reconciliation.state, "in_progress")
+            matched_line = reconciliation.line_ids.filtered(
+                lambda line: line.statement_line_id == self.statement_import.line_ids[0]
+            )
+            self.assertEqual(matched_line.status, "matched")
+            pending_line = reconciliation.line_ids.filtered(
+                lambda line: line.statement_line_id == self.statement_import.line_ids[1]
+            )
+            pending_line.action_create_adjustment()
+            self.assertEqual(pending_line.status, "adjusted")
+            reconciliation.action_finalize()
+            self.assertEqual(reconciliation.state, "done")
+
         def test_mark_movement_reconciled(self):
             reconciliation = self._create_reconciliation()
             self.env["treasury.reconciliation.service"].match_line(

@@ -178,6 +178,28 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(installments[0].amount_open, 60.0)
             self.assertEqual(installments[0].state, "partial")
 
+        def test_apply_payment_via_model_action(self):
+            _title, installments = self._create_title_with_installments()
+            service = self.env["payable.service"]
+            payment = service.create_payment(
+                {
+                    "name": "Pagamento Via Botao",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "payment_method_id": self.payment_method.id,
+                    "source_account_id": self.account.id,
+                    "source_portador_id": self.portador.id,
+                },
+                [
+                    {
+                        "installment_id": installments[0].id,
+                        "principal_amount": 20.0,
+                    }
+                ],
+            )
+            payment.action_apply()
+            self.assertEqual(payment.state, "applied")
+
         def test_block_payment_above_open_amount(self):
             _title, installments = self._create_title_with_installments()
             service = self.env["payable.service"]

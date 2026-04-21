@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class ReceivableSettlement(models.Model):
@@ -23,6 +23,8 @@ class ReceivableSettlement(models.Model):
         "A moeda da liquidacao deve ser igual a moeda das parcelas selecionadas."
     )
     MSG_TAXA_CAMBIO_POSITIVA = "A taxa de cambio deve ser maior que zero."
+    MSG_APLICACAO_SOMENTE_RASCUNHO = "Somente liquidacoes em rascunho podem ser aplicadas."
+    MSG_CANCELAMENTO_SOMENTE_RASCUNHO = "Somente liquidacoes em rascunho podem ser canceladas."
 
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
@@ -207,3 +209,17 @@ class ReceivableSettlement(models.Model):
         for settlement in self:
             if settlement.exchange_rate <= 0:
                 raise ValidationError(self.MSG_TAXA_CAMBIO_POSITIVA)
+
+    def action_apply(self):
+        for settlement in self:
+            if settlement.state != "draft":
+                raise UserError(self.MSG_APLICACAO_SOMENTE_RASCUNHO)
+            self.env["receivable.service"].apply_settlement(settlement)
+        return True
+
+    def action_cancel(self):
+        for settlement in self:
+            if settlement.state != "draft":
+                raise UserError(self.MSG_CANCELAMENTO_SOMENTE_RASCUNHO)
+            settlement.state = "cancelled"
+        return True

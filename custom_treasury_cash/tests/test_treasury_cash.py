@@ -114,6 +114,19 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(movement.signed_amount, 25.0)
             self.assertEqual(len(session.line_ids), 1)
 
+        def test_register_supply_via_wizard(self):
+            session = self.env["treasury.cash.service"].open_session(self.cash_box, self.env.user, 0.0)
+            wizard = self.env["treasury.cash.operation.wizard"].create(
+                {
+                    "session_id": session.id,
+                    "operation_type": "supply",
+                    "amount": 15.0,
+                }
+            )
+            wizard.action_confirm()
+            self.assertEqual(len(session.line_ids), 1)
+            self.assertEqual(session.line_ids[0].movement_id.signed_amount, 15.0)
+
         def test_register_withdrawal(self):
             session = self.env["treasury.cash.service"].open_session(self.cash_box, self.env.user, 100.0)
             movement = self.env["treasury.cash.service"].register_withdrawal(session, 30.0)

@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class PayablePayment(models.Model):
@@ -11,6 +12,8 @@ class PayablePayment(models.Model):
         "A moeda do pagamento deve ser igual a moeda das parcelas selecionadas."
     )
     MSG_TAXA_CAMBIO_POSITIVA = "A taxa de cambio deve ser maior que zero."
+    MSG_APLICACAO_SOMENTE_RASCUNHO = "Somente pagamentos em rascunho podem ser aplicados."
+    MSG_CANCELAMENTO_SOMENTE_RASCUNHO = "Somente pagamentos em rascunho podem ser cancelados."
 
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
@@ -163,3 +166,17 @@ class PayablePayment(models.Model):
         for payment in self:
             if payment.exchange_rate <= 0:
                 raise ValidationError(self.MSG_TAXA_CAMBIO_POSITIVA)
+
+    def action_apply(self):
+        for payment in self:
+            if payment.state != "draft":
+                raise UserError(self.MSG_APLICACAO_SOMENTE_RASCUNHO)
+            self.env["payable.service"].apply_payment(payment)
+        return True
+
+    def action_cancel(self):
+        for payment in self:
+            if payment.state != "draft":
+                raise UserError(self.MSG_CANCELAMENTO_SOMENTE_RASCUNHO)
+            payment.state = "cancelled"
+        return True

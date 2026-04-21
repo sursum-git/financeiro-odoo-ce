@@ -18,12 +18,15 @@
         <field name="model">receivable.collection.route</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_open_assign_wizard" string="Atribuir Titulos" type="object" invisible="state in ('done','cancelled')"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="name"/>
                         <field name="date"/>
                         <field name="company_id"/>
-                        <field name="state"/>
                     </group>
                     <group>
                         <field name="notes"/>
