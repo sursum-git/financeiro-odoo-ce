@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_inherit_withholding" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.withholding</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Retencoes" groups="custom_financial_base.group_financial_base_user,custom_financial_base.group_financial_base_manager">
+                    <field name="withholding_line_ids" context="{'default_partner_id': id}">
+                        <list editable="bottom">
+                            <field name="company_id"/>
+                            <field name="withholding_code_id"/>
+                            <field name="retention_percent"/>
+                            <field name="supplier_contact_id"/>
+                            <field name="notes"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

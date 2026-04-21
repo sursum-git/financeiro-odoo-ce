@@ -85,3 +85,53 @@ if __name__.startswith("odoo.addons."):
             )
             self.assertEqual(history.read(["name"])[0]["name"], "Historico Teste")
             self.assertEqual(reason.read(["type"])[0]["type"], "ajuste")
+
+        def test_create_withholding_code(self):
+            code = self.env["financial.withholding.code"].create(
+                {
+                    "name": "IRRF Servicos",
+                    "code": "IRRF",
+                    "company_id": self.env.company.id,
+                }
+            )
+            self.assertEqual(code.code, "IRRF")
+
+        def test_assign_multiple_withholding_lines_to_partner(self):
+            partner = self.env["res.partner"].create({"name": "Fornecedor Com Retencao"})
+            receiver_a = self.env["res.partner"].create({"name": "Contato Recebedor A"})
+            receiver_b = self.env["res.partner"].create({"name": "Contato Recebedor B"})
+            code_a = self.env["financial.withholding.code"].create(
+                {
+                    "name": "ISS",
+                    "code": "ISS",
+                    "company_id": self.env.company.id,
+                }
+            )
+            code_b = self.env["financial.withholding.code"].create(
+                {
+                    "name": "IRRF",
+                    "code": "IRRF",
+                    "company_id": self.env.company.id,
+                }
+            )
+            line_a = self.env["res.partner.withholding.line"].create(
+                {
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                    "withholding_code_id": code_a.id,
+                    "retention_percent": 5.0,
+                    "supplier_contact_id": receiver_a.id,
+                }
+            )
+            line_b = self.env["res.partner.withholding.line"].create(
+                {
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                    "withholding_code_id": code_b.id,
+                    "retention_percent": 1.5,
+                    "supplier_contact_id": receiver_b.id,
+                }
+            )
+            self.assertEqual(len(partner.withholding_line_ids), 2)
+            self.assertEqual(line_a.supplier_contact_id, receiver_a)
+            self.assertEqual(line_b.retention_percent, 1.5)
