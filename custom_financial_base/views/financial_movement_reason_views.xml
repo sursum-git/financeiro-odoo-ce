@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_financial_movement_reason_tree" model="ir.ui.view">
+        <field name="name">financial.movement.reason.tree</field>
+        <field name="model">financial.movement.reason</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="type"/>
+                <field name="company_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_financial_movement_reason_form" model="ir.ui.view">
+        <field name="name">financial.movement.reason.form</field>
+        <field name="model">financial.movement.reason</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="type"/>
+                        <field name="company_id"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_financial_movement_reason" model="ir.actions.act_window">
+        <field name="name">Motivos de Movimento</field>
+        <field name="res_model">financial.movement.reason</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_financial_movement_reason"
+        name="Motivos de Movimento"
+        parent="custom_financial_base.custom_financial_base_menu_config"
+        action="action_financial_movement_reason"
+        sequence="50"
+    />
+</odoo>

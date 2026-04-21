@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_financial_parameter_tree" model="ir.ui.view">
+        <field name="name">financial.parameter.tree</field>
+        <field name="model">financial.parameter</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id"/>
+                <field name="default_portador_id"/>
+                <field name="default_payment_method_id"/>
+                <field name="allow_negative_cash"/>
+                <field name="require_cash_difference_reason"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_financial_parameter_form" model="ir.ui.view">
+        <field name="name">financial.parameter.form</field>
+        <field name="model">financial.parameter</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="company_id"/>
+                        <field name="default_portador_id"/>
+                        <field name="default_payment_method_id"/>
+                        <field name="allow_negative_cash"/>
+                        <field name="require_cash_difference_reason"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_financial_parameter" model="ir.actions.act_window">
+        <field name="name">Parametros Financeiros</field>
+        <field name="res_model">financial.parameter</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_financial_parameter"
+        name="Parametros"
+        parent="custom_financial_base.custom_financial_base_menu_config"
+        action="action_financial_parameter"
+        sequence="60"
+    />
+</odoo>

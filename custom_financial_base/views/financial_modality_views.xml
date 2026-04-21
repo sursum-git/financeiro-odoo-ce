@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_financial_modality_tree" model="ir.ui.view">
+        <field name="name">financial.modality.tree</field>
+        <field name="model">financial.modality</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="tipo_operacao"/>
+                <field name="company_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_financial_modality_form" model="ir.ui.view">
+        <field name="name">financial.modality.form</field>
+        <field name="model">financial.modality</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="tipo_operacao"/>
+                        <field name="company_id"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_financial_modality" model="ir.actions.act_window">
+        <field name="name">Modalidades Financeiras</field>
+        <field name="res_model">financial.modality</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_financial_modality"
+        name="Modalidades"
+        parent="custom_financial_base.custom_financial_base_menu_config"
+        action="action_financial_modality"
+        sequence="30"
+    />
+</odoo>

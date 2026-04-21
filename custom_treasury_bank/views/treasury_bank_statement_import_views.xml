@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_treasury_bank_statement_import_tree" model="ir.ui.view">
+        <field name="name">treasury.bank.statement.import.tree</field>
+        <field name="model">treasury.bank.statement.import</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="file_name"/>
+                <field name="bank_account_id"/>
+                <field name="company_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_treasury_bank_statement_import_form" model="ir.ui.view">
+        <field name="name">treasury.bank.statement.import.form</field>
+        <field name="model">treasury.bank.statement.import</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_import_file" string="Importar" type="object" invisible="state != 'draft'"/>
+                    <button name="action_cancel" string="Cancelar" type="object" invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="file_name"/>
+                        <field name="file_data" filename="file_name"/>
+                        <field name="company_id"/>
+                        <field name="bank_account_id"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                    <group>
+                        <field name="line_ids"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_treasury_bank_statement_import" model="ir.actions.act_window">
+        <field name="name">Importacoes de Extrato</field>
+        <field name="res_model">treasury.bank.statement.import</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_treasury_bank_statement_import"
+        name="Importacoes de Extrato"
+        parent="custom_treasury_bank.custom_treasury_bank_menu_root"
+        action="action_treasury_bank_statement_import"
+        sequence="40"
+    />
+</odoo>

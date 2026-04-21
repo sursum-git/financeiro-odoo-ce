@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_receivable_title_tree" model="ir.ui.view">
+        <field name="name">receivable.title.tree</field>
+        <field name="model">receivable.title</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="issue_date"/>
+                <field name="amount_total"/>
+                <field name="amount_open"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_receivable_title_form" model="ir.ui.view">
+        <field name="name">receivable.title.form</field>
+        <field name="model">receivable.title</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="partner_id"/>
+                        <field name="company_id"/>
+                        <field name="issue_date"/>
+                        <field name="origin_reference"/>
+                    </group>
+                    <group>
+                        <field name="amount_total"/>
+                        <field name="amount_open" readonly="1"/>
+                        <field name="currency_id"/>
+                        <field name="state"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                    <group>
+                        <field name="installment_ids"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_receivable_title" model="ir.actions.act_window">
+        <field name="name">Titulos</field>
+        <field name="res_model">receivable.title</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_receivable_title"
+        name="Titulos"
+        parent="custom_account_receivable.custom_account_receivable_menu_root"
+        action="action_receivable_title"
+        sequence="10"
+    />
+</odoo>

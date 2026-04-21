@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="custom_account_receivable_collection_menu_root"
+        name="Cobranca"
+        parent="custom_account_receivable.custom_account_receivable_menu_root"
+        sequence="60"
+        groups="custom_account_receivable_collection.group_receivable_collection_user,custom_account_receivable_collection.group_receivable_collection_manager"
+    />
+</odoo>

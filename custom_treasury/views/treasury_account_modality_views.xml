@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_treasury_account_modality_tree" model="ir.ui.view">
+        <field name="name">treasury.account.modality.tree</field>
+        <field name="model">treasury.account.modality</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="account_id"/>
+                <field name="modality_id"/>
+                <field name="code"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_treasury_account_modality_form" model="ir.ui.view">
+        <field name="name">treasury.account.modality.form</field>
+        <field name="model">treasury.account.modality</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="account_id"/>
+                        <field name="modality_id"/>
+                        <field name="code"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_treasury_account_modality" model="ir.actions.act_window">
+        <field name="name">Conta x Modalidade</field>
+        <field name="res_model">treasury.account.modality</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_treasury_account_modality"
+        name="Conta x Modalidade"
+        parent="custom_treasury.custom_treasury_menu_config"
+        action="action_treasury_account_modality"
+        sequence="20"
+    />
+</odoo>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_financial_reports_user" model="res.groups">
+        <field name="name">Financial Reports User</field>
+        <field name="implied_ids" eval="[(4, ref('custom_treasury.group_treasury_user')), (4, ref('custom_account_receivable.group_receivable_user')), (4, ref('custom_account_payable.group_payable_user'))]"/>
+    </record>
+
+    <record id="group_financial_reports_manager" model="res.groups">
+        <field name="name">Financial Reports Manager</field>
+        <field name="implied_ids" eval="[(4, ref('custom_financial_reports.group_financial_reports_user'))]"/>
+    </record>
+</odoo>

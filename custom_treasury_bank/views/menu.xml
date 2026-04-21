@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="custom_treasury_bank_menu_root"
+        name="Bancos"
+        parent="custom_treasury.custom_treasury_menu_root"
+        sequence="40"
+        groups="custom_treasury_bank.group_treasury_bank_user,custom_treasury_bank.group_treasury_bank_manager"
+    />
+</odoo>

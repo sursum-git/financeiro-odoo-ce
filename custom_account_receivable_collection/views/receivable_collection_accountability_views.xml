@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_receivable_collection_accountability_tree" model="ir.ui.view">
+        <field name="name">receivable.collection.accountability.tree</field>
+        <field name="model">receivable.collection.accountability</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="agent_id"/>
+                <field name="date"/>
+                <field name="amount"/>
+                <field name="target_account_id"/>
+                <field name="target_cash_box_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_receivable_collection_accountability_form" model="ir.ui.view">
+        <field name="name">receivable.collection.accountability.form</field>
+        <field name="model">receivable.collection.accountability</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="agent_id"/>
+                        <field name="date"/>
+                        <field name="company_id" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="amount" readonly="1"/>
+                        <field name="target_account_id"/>
+                        <field name="target_cash_box_id"/>
+                        <field name="state"/>
+                    </group>
+                    <group>
+                        <field name="settlement_ids"/>
+                    </group>
+                    <group>
+                        <field name="out_movement_id" readonly="1"/>
+                        <field name="in_movement_id" readonly="1"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_receivable_collection_accountability" model="ir.actions.act_window">
+        <field name="name">Prestacoes de Contas</field>
+        <field name="res_model">receivable.collection.accountability</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_receivable_collection_accountability"
+        name="Prestacoes de Contas"
+        parent="custom_account_receivable_collection.custom_account_receivable_collection_menu_root"
+        action="action_receivable_collection_accountability"
+        sequence="40"
+    />
+</odoo>

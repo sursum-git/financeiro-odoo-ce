@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_treasury_transfer_tree" model="ir.ui.view">
+        <field name="name">treasury.transfer.tree</field>
+        <field name="model">treasury.transfer</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="amount"/>
+                <field name="source_account_id"/>
+                <field name="target_account_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_treasury_transfer_form" model="ir.ui.view">
+        <field name="name">treasury.transfer.form</field>
+        <field name="model">treasury.transfer</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirmar" type="object" invisible="state != 'draft'"/>
+                    <button name="action_cancel" string="Cancelar" type="object" invisible="state != 'confirmed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="date"/>
+                        <field name="company_id"/>
+                        <field name="amount"/>
+                        <field name="currency_id"/>
+                    </group>
+                    <group string="Origem">
+                        <field name="source_account_id"/>
+                        <field name="source_portador_id"/>
+                    </group>
+                    <group string="Destino">
+                        <field name="target_account_id"/>
+                        <field name="target_portador_id"/>
+                    </group>
+                    <group string="Reflexos">
+                        <field name="out_movement_id"/>
+                        <field name="in_movement_id"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_treasury_transfer" model="ir.actions.act_window">
+        <field name="name">Transferencias</field>
+        <field name="res_model">treasury.transfer</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_treasury_transfer"
+        name="Transferencias"
+        parent="custom_treasury.custom_treasury_menu_operations"
+        action="action_treasury_transfer"
+        sequence="20"
+    />
+</odoo>

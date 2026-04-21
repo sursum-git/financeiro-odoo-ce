@@ -1,0 +1,27 @@
+{
+    "name": "Financial Reports",
+    "summary": "Read-only financial reports and analytical queries",
+    "version": "19.0.1.0.0",
+    "category": "Accounting",
+    "license": "LGPL-3",
+    "author": "OpenAI",
+    "depends": [
+        "custom_treasury",
+        "custom_treasury_cash",
+        "custom_treasury_bank",
+        "custom_account_receivable",
+        "custom_account_payable",
+        "custom_treasury_reconciliation",
+        "custom_account_receivable_collection",
+    ],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "views/menu.xml",
+        "views/treasury_report_views.xml",
+        "views/receivable_report_views.xml",
+        "views/payable_report_views.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

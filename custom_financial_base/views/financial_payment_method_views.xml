@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_financial_payment_method_tree" model="ir.ui.view">
+        <field name="name">financial.payment.method.tree</field>
+        <field name="model">financial.payment.method</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="type"/>
+                <field name="liquida_imediato"/>
+                <field name="permite_parcelamento"/>
+                <field name="company_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_financial_payment_method_form" model="ir.ui.view">
+        <field name="name">financial.payment.method.form</field>
+        <field name="model">financial.payment.method</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="type"/>
+                        <field name="company_id"/>
+                        <field name="liquida_imediato"/>
+                        <field name="permite_parcelamento"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_financial_payment_method" model="ir.actions.act_window">
+        <field name="name">Formas de Pagamento</field>
+        <field name="res_model">financial.payment.method</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_financial_payment_method"
+        name="Formas de Pagamento"
+        parent="custom_financial_base.custom_financial_base_menu_config"
+        action="action_financial_payment_method"
+        sequence="20"
+    />
+</odoo>

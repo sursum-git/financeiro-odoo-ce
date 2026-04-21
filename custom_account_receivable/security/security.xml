@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_receivable_user" model="res.groups">
+        <field name="name">Receivable User</field>
+        <field name="implied_ids" eval="[(4, ref('custom_financial_base.group_financial_base_user'))]"/>
+    </record>
+
+    <record id="group_receivable_manager" model="res.groups">
+        <field name="name">Receivable Manager</field>
+        <field name="implied_ids" eval="[(4, ref('custom_account_receivable.group_receivable_user'))]"/>
+    </record>
+</odoo>

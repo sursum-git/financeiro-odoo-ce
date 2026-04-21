@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_receivable_collection_assignment_tree" model="ir.ui.view">
+        <field name="name">receivable.collection.assignment.tree</field>
+        <field name="model">receivable.collection.assignment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="route_id"/>
+                <field name="agent_id"/>
+                <field name="partner_id"/>
+                <field name="title_id"/>
+                <field name="installment_id"/>
+                <field name="state"/>
+                <field name="collection_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_receivable_collection_assignment_form" model="ir.ui.view">
+        <field name="name">receivable.collection.assignment.form</field>
+        <field name="model">receivable.collection.assignment</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="route_id"/>
+                        <field name="agent_id"/>
+                        <field name="company_id" readonly="1"/>
+                        <field name="state"/>
+                    </group>
+                    <group>
+                        <field name="partner_id"/>
+                        <field name="title_id"/>
+                        <field name="installment_id"/>
+                        <field name="settlement_id" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="collection_date"/>
+                        <field name="accountability_id" readonly="1"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_receivable_collection_assignment" model="ir.actions.act_window">
+        <field name="name">Atribuicoes</field>
+        <field name="res_model">receivable.collection.assignment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_receivable_collection_assignment"
+        name="Atribuicoes"
+        parent="custom_account_receivable_collection.custom_account_receivable_collection_menu_root"
+        action="action_receivable_collection_assignment"
+        sequence="30"
+    />
+</odoo>

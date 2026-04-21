@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="custom_financial_reports_menu_root"
+        name="Relatorios"
+        parent="custom_financial_base.custom_financial_base_menu_root"
+        sequence="90"
+        groups="custom_financial_reports.group_financial_reports_user,custom_financial_reports.group_financial_reports_manager"
+    />
+</odoo>

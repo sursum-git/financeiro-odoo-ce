@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_treasury_account_user,treasury.account user,model_treasury_account,custom_treasury.group_treasury_user,1,1,1,0
+access_treasury_account_manager,treasury.account manager,model_treasury_account,custom_treasury.group_treasury_manager,1,1,1,1
+access_treasury_account_modality_user,treasury.account.modality user,model_treasury_account_modality,custom_treasury.group_treasury_user,1,1,1,0
+access_treasury_account_modality_manager,treasury.account.modality manager,model_treasury_account_modality,custom_treasury.group_treasury_manager,1,1,1,1
+access_treasury_movement_user,treasury.movement user,model_treasury_movement,custom_treasury.group_treasury_user,1,1,1,0
+access_treasury_movement_manager,treasury.movement manager,model_treasury_movement,custom_treasury.group_treasury_manager,1,1,1,1
+access_treasury_movement_payment_line_user,treasury.movement.payment.line user,model_treasury_movement_payment_line,custom_treasury.group_treasury_user,1,1,1,0
+access_treasury_movement_payment_line_manager,treasury.movement.payment.line manager,model_treasury_movement_payment_line,custom_treasury.group_treasury_manager,1,1,1,1
+access_treasury_transfer_user,treasury.transfer user,model_treasury_transfer,custom_treasury.group_treasury_user,1,1,1,0
+access_treasury_transfer_manager,treasury.transfer manager,model_treasury_transfer,custom_treasury.group_treasury_manager,1,1,1,1

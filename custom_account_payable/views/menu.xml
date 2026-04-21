@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="custom_account_payable_menu_root"
+        name="Contas a Pagar"
+        parent="custom_financial_base.custom_financial_base_menu_root"
+        sequence="60"
+        groups="custom_account_payable.group_payable_user,custom_account_payable.group_payable_manager"
+    />
+</odoo>

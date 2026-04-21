@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_payable_title_user,payable.title user,model_payable_title,custom_account_payable.group_payable_user,1,1,1,0
+access_payable_title_manager,payable.title manager,model_payable_title,custom_account_payable.group_payable_manager,1,1,1,1
+access_payable_installment_user,payable.installment user,model_payable_installment,custom_account_payable.group_payable_user,1,1,1,0
+access_payable_installment_manager,payable.installment manager,model_payable_installment,custom_account_payable.group_payable_manager,1,1,1,1
+access_payable_payment_user,payable.payment user,model_payable_payment,custom_account_payable.group_payable_user,1,1,1,0
+access_payable_payment_manager,payable.payment manager,model_payable_payment,custom_account_payable.group_payable_manager,1,1,1,1
+access_payable_payment_line_user,payable.payment.line user,model_payable_payment_line,custom_account_payable.group_payable_user,1,1,1,0
+access_payable_payment_line_manager,payable.payment.line manager,model_payable_payment_line,custom_account_payable.group_payable_manager,1,1,1,1
+access_payable_schedule_user,payable.schedule user,model_payable_schedule,custom_account_payable.group_payable_user,1,1,1,0
+access_payable_schedule_manager,payable.schedule manager,model_payable_schedule,custom_account_payable.group_payable_manager,1,1,1,1

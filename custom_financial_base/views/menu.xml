@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="custom_financial_base_menu_root" name="Financeiro" sequence="60"/>
+    <menuitem
+        id="custom_financial_base_menu_config"
+        name="Cadastros"
+        parent="custom_financial_base_menu_root"
+        sequence="10"
+        groups="custom_financial_base.group_financial_base_user,custom_financial_base.group_financial_base_manager"
+    />
+</odoo>

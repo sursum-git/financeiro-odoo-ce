@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_treasury_bank_account_tree" model="ir.ui.view">
+        <field name="name">treasury.bank.account.tree</field>
+        <field name="model">treasury.bank.account</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="bank_id"/>
+                <field name="agency"/>
+                <field name="account_number"/>
+                <field name="treasury_account_id"/>
+                <field name="company_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_treasury_bank_account_form" model="ir.ui.view">
+        <field name="name">treasury.bank.account.form</field>
+        <field name="model">treasury.bank.account</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="bank_id"/>
+                        <field name="treasury_account_id"/>
+                        <field name="company_id"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="agency"/>
+                        <field name="account_number"/>
+                        <field name="account_digit"/>
+                    </group>
+                    <group>
+                        <field name="modality_link_ids"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_treasury_bank_account" model="ir.actions.act_window">
+        <field name="name">Contas Bancarias</field>
+        <field name="res_model">treasury.bank.account</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_treasury_bank_account"
+        name="Contas Bancarias"
+        parent="custom_treasury_bank.custom_treasury_bank_menu_root"
+        action="action_treasury_bank_account"
+        sequence="20"
+    />
+</odoo>

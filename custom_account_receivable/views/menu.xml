@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="custom_account_receivable_menu_root"
+        name="Contas a Receber"
+        parent="custom_financial_base.custom_financial_base_menu_root"
+        sequence="50"
+        groups="custom_account_receivable.group_receivable_user,custom_account_receivable.group_receivable_manager"
+    />
+</odoo>

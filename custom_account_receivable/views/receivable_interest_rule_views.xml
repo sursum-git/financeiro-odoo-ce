@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_receivable_interest_rule_tree" model="ir.ui.view">
+        <field name="name">receivable.interest.rule.tree</field>
+        <field name="model">receivable.interest.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="interest_type"/>
+                <field name="interest_value"/>
+                <field name="fine_type"/>
+                <field name="fine_value"/>
+                <field name="discount_type"/>
+                <field name="discount_value"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_receivable_interest_rule_form" model="ir.ui.view">
+        <field name="name">receivable.interest.rule.form</field>
+        <field name="model">receivable.interest.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="company_id"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Juros">
+                        <field name="interest_type"/>
+                        <field name="interest_value"/>
+                    </group>
+                    <group string="Multa">
+                        <field name="fine_type"/>
+                        <field name="fine_value"/>
+                    </group>
+                    <group string="Desconto">
+                        <field name="discount_type"/>
+                        <field name="discount_value"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_receivable_interest_rule" model="ir.actions.act_window">
+        <field name="name">Regras de Juros</field>
+        <field name="res_model">receivable.interest.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_receivable_interest_rule"
+        name="Regras de Juros"
+        parent="custom_account_receivable.custom_account_receivable_menu_root"
+        action="action_receivable_interest_rule"
+        sequence="40"
+    />
+</odoo>

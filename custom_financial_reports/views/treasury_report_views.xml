@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_financial_report_helper_treasury_form" model="ir.ui.view">
+        <field name="name">financial.report.helper.treasury.form</field>
+        <field name="model">financial.report.helper</field>
+        <field name="arch" type="xml">
+            <form create="true" edit="true" delete="true">
+                <sheet>
+                    <group>
+                        <field name="company_id"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group>
+                        <field name="account_id"/>
+                        <field name="portador_id"/>
+                    </group>
+                    <group string="Tesouraria">
+                        <button name="action_open_treasury_statement_by_account" type="object" string="Extrato por Conta" class="btn-primary"/>
+                        <button name="action_open_treasury_statement_by_portador" type="object" string="Extrato por Portador"/>
+                        <button name="action_open_balance_by_account" type="object" string="Saldo por Conta"/>
+                        <button name="action_open_balance_by_portador" type="object" string="Saldo por Portador"/>
+                        <button name="action_open_cash_flow_realized" type="object" string="Fluxo de Caixa Realizado"/>
+                    </group>
+                    <group string="Conciliacao">
+                        <button name="action_open_reconciled_items" type="object" string="Itens Conciliados"/>
+                        <button name="action_open_divergent_items" type="object" string="Itens Divergentes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_financial_reports_treasury" model="ir.actions.act_window">
+        <field name="name">Relatorios de Tesouraria</field>
+        <field name="res_model">financial.report.helper</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_financial_report_helper_treasury_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="menu_financial_reports_treasury"
+        name="Tesouraria"
+        parent="custom_financial_reports.custom_financial_reports_menu_root"
+        action="action_financial_reports_treasury"
+        sequence="10"
+    />
+</odoo>
