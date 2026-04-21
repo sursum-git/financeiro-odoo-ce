@@ -8,6 +8,7 @@
                 <field name="name"/>
                 <field name="date"/>
                 <field name="partner_id"/>
+                <field name="settlement_kind"/>
                 <field name="gross_amount_total"/>
                 <field name="withholding_amount_total"/>
                 <field name="net_amount_total"/>
@@ -30,6 +31,7 @@
                         <field name="company_id"/>
                     </group>
                     <group>
+                        <field name="settlement_kind"/>
                         <field name="payment_method_id"/>
                         <field name="portador_id"/>
                         <field name="target_account_id"/>
@@ -46,8 +48,22 @@
                     <group>
                         <field name="line_ids"/>
                     </group>
+                    <group invisible="settlement_kind != 'third_party_check'">
+                        <field name="third_party_check_line_ids">
+                            <list editable="bottom">
+                                <field name="issuer_name"/>
+                                <field name="check_number"/>
+                                <field name="bank_name"/>
+                                <field name="branch"/>
+                                <field name="account_number"/>
+                                <field name="expected_clearance_date"/>
+                                <field name="amount"/>
+                                <field name="notes"/>
+                            </list>
+                        </field>
+                    </group>
                     <group>
-                        <field name="withholding_line_ids" readonly="1">
+                        <field name="withholding_line_ids" readonly="1" invisible="settlement_kind == 'third_party_check'">
                             <list>
                                 <field name="withholding_code_id"/>
                                 <field name="supplier_contact_id"/>

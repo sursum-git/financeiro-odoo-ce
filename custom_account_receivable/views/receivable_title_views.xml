@@ -7,9 +7,12 @@
             <list>
                 <field name="name"/>
                 <field name="partner_id"/>
+                <field name="species_id"/>
                 <field name="issue_date"/>
                 <field name="amount_total"/>
                 <field name="amount_open"/>
+                <field name="check_number" optional="hide"/>
+                <field name="expected_clearance_date" optional="hide"/>
                 <field name="state"/>
             </list>
         </field>
@@ -28,6 +31,19 @@
                         class="btn-primary"
                         invisible="state not in ('open', 'partial')"
                     />
+                    <button
+                        name="action_open_check_compensation_wizard"
+                        string="Compensar Cheque"
+                        type="object"
+                        class="btn-primary"
+                        invisible="species_kind != 'check' or state not in ('open', 'partial')"
+                    />
+                    <button
+                        name="action_open_check_return_wizard"
+                        string="Devolver Cheque"
+                        type="object"
+                        invisible="species_kind != 'check' or state not in ('open', 'partial')"
+                    />
                 </header>
                 <sheet>
                     <group>
@@ -38,10 +54,31 @@
                         <field name="origin_reference"/>
                     </group>
                     <group>
+                        <field name="species_id"/>
                         <field name="amount_total"/>
                         <field name="amount_open" readonly="1"/>
                         <field name="currency_id"/>
                         <field name="state"/>
+                    </group>
+                    <group invisible="species_kind != 'check'">
+                        <field name="source_title_id" readonly="1"/>
+                        <field name="source_settlement_id" readonly="1"/>
+                        <field name="check_status" readonly="1"/>
+                        <field name="replacement_title_id" readonly="1"/>
+                    </group>
+                    <group invisible="species_kind != 'check'">
+                        <field name="check_issuer_name" readonly="1"/>
+                        <field name="check_number" readonly="1"/>
+                        <field name="check_bank_name" readonly="1"/>
+                        <field name="check_branch" readonly="1"/>
+                        <field name="check_account_number" readonly="1"/>
+                    </group>
+                    <group invisible="species_kind != 'check'">
+                        <field name="expected_clearance_date" readonly="1"/>
+                        <field name="actual_clearance_date" readonly="1"/>
+                        <field name="last_return_date" readonly="1"/>
+                        <field name="return_count" readonly="1"/>
+                        <field name="check_return_reason_id" readonly="1"/>
                     </group>
                     <group>
                         <field name="notes"/>
@@ -49,9 +86,19 @@
                     <group>
                         <field name="installment_ids"/>
                     </group>
+                    <group invisible="species_kind != 'check'">
+                        <field name="generated_check_title_ids" readonly="1"/>
+                    </group>
                 </sheet>
             </form>
         </field>
+    </record>
+
+    <record id="action_receivable_third_party_checks" model="ir.actions.act_window">
+        <field name="name">Cheques de Terceiros</field>
+        <field name="res_model">receivable.title</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[("species_kind", "=", "check")]</field>
     </record>
 
     <record id="action_receivable_title" model="ir.actions.act_window">
@@ -66,5 +113,13 @@
         parent="custom_account_receivable.custom_account_receivable_menu_root"
         action="action_receivable_title"
         sequence="10"
+    />
+
+    <menuitem
+        id="menu_receivable_third_party_checks"
+        name="Cheques de Terceiros"
+        parent="custom_account_receivable.custom_account_receivable_menu_root"
+        action="action_receivable_third_party_checks"
+        sequence="20"
     />
 </odoo>

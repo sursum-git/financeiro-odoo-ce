@@ -16,6 +16,16 @@ class PayableTitle(models.Model):
     )
     issue_date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     origin_reference = fields.Char(index=True)
+    species_id = fields.Many2one(
+        "financial.title.species",
+        ondelete="restrict",
+        default=lambda self: self.env.ref("custom_financial_base.financial_title_species_normal", raise_if_not_found=False),
+    )
+    species_kind = fields.Selection(
+        related="species_id.kind",
+        store=True,
+        readonly=True,
+    )
     amount_total = fields.Monetary(required=True, currency_field="currency_id")
     amount_open = fields.Monetary(
         compute="_compute_amounts",

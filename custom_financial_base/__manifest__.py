@@ -11,7 +11,10 @@
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
+        "data/financial_title_species_data.xml",
         "views/menu.xml",
+        "views/financial_title_species_views.xml",
+        "views/financial_check_return_reason_views.xml",
         "views/financial_portador_views.xml",
         "views/financial_withholding_code_views.xml",
         "views/financial_payment_method_views.xml",

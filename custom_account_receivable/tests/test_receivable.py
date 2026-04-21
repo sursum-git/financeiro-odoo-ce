@@ -49,6 +49,21 @@ if __name__.startswith("odoo.addons."):
                     "supplier_contact_id": cls.withholding_supplier.id,
                 }
             )
+            cls.check_payment_method = cls.env["financial.payment.method"].create(
+                {
+                    "name": "Cheque",
+                    "code": "CHEQREC",
+                    "type": "cheque",
+                    "company_id": cls.env.company.id,
+                }
+            )
+            cls.check_return_reason = cls.env["financial.check.return.reason"].create(
+                {
+                    "code": "11",
+                    "name": "Cheque sem fundos",
+                    "is_definitive": True,
+                }
+            )
 
         def _create_title_with_installments(self):
             service = self.env["receivable.service"]
@@ -85,6 +100,37 @@ if __name__.startswith("odoo.addons."):
                 [{"due_date": due_date, "amount": amount}],
             )
             return title, installment[0]
+
+        def _substitute_title_with_third_party_check(self, amount=100.0):
+            service = self.env["receivable.service"]
+            title, installment = self._create_single_installment_title(
+                f"Titulo Cheque {amount}", amount, "2026-05-10"
+            )
+            settlement = service.create_settlement(
+                {
+                    "name": "Substituicao por Cheque",
+                    "date": "2026-05-10",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "settlement_kind": "third_party_check",
+                    "payment_method_id": self.check_payment_method.id,
+                },
+                [{"installment_id": installment.id, "principal_amount": amount}],
+            )
+            self.env["receivable.settlement.check.line"].create(
+                {
+                    "settlement_id": settlement.id,
+                    "issuer_name": "Cliente do Cliente",
+                    "check_number": f"CHK{int(amount)}",
+                    "bank_name": "Banco 1",
+                    "branch": "0001",
+                    "account_number": "12345-6",
+                    "expected_clearance_date": "2026-05-20",
+                    "amount": amount,
+                }
+            )
+            service.apply_settlement(settlement)
+            return title, settlement, settlement.line_ids.title_id.generated_check_title_ids[:1]
 
         def test_create_receivable_title(self):
             title, _installments = self._create_title_with_installments()
@@ -217,6 +263,49 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(renegotiation.new_title_id.amount_total, 250.0)
             self.assertEqual(len(renegotiation.new_title_id.installment_ids), 2)
             self.assertEqual(title.state, "renegotiated")
+
+        def test_substitute_receivable_with_third_party_checks(self):
+            title, settlement, check_title = self._substitute_title_with_third_party_check(100.0)
+            self.assertEqual(settlement.state, "applied")
+            self.assertEqual(title.state, "substituted")
+            self.assertEqual(check_title.species_kind, "check")
+            self.assertEqual(check_title.check_status, "pending")
+            self.assertEqual(check_title.amount_open, 100.0)
+            self.assertEqual(check_title.source_title_id, title)
+
+        def test_compensate_third_party_check(self):
+            _title, _settlement, check_title = self._substitute_title_with_third_party_check(120.0)
+            action = check_title.action_open_check_compensation_wizard()
+            wizard = self.env[action["res_model"]].with_context(action["context"]).create(
+                {
+                    "payment_method_id": self.check_payment_method.id,
+                    "portador_id": self.portador.id,
+                    "target_account_id": self.account.id,
+                    "compensation_date": "2026-05-20",
+                }
+            )
+            wizard.action_confirm()
+            check_title.invalidate_recordset()
+            self.assertEqual(check_title.state, "paid")
+            self.assertEqual(check_title.check_status, "compensated")
+            self.assertEqual(str(check_title.actual_clearance_date), "2026-05-20")
+
+        def test_definitive_check_return_creates_normal_title(self):
+            _title, _settlement, check_title = self._substitute_title_with_third_party_check(130.0)
+            action = check_title.action_open_check_return_wizard()
+            wizard = self.env[action["res_model"]].with_context(action["context"]).create(
+                {
+                    "return_reason_id": self.check_return_reason.id,
+                    "return_date": "2026-05-22",
+                }
+            )
+            wizard.action_confirm()
+            check_title.invalidate_recordset()
+            self.assertEqual(check_title.state, "cancelled")
+            self.assertEqual(check_title.check_status, "definitive_return")
+            self.assertTrue(check_title.replacement_title_id)
+            self.assertEqual(check_title.replacement_title_id.species_kind, "normal")
+            self.assertEqual(check_title.replacement_title_id.amount_open, 130.0)
 
         def test_monthly_withholding_is_cumulative_on_receipts(self):
             service = self.env["receivable.service"]

@@ -102,6 +102,24 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(code.minimum_retention_amount, 10.0)
             self.assertEqual(code.minimum_payment_amount, 25.0)
 
+        def test_default_title_species_are_available(self):
+            species_normal = self.env.ref("custom_financial_base.financial_title_species_normal")
+            species_check = self.env.ref("custom_financial_base.financial_title_species_check")
+            self.assertEqual(species_normal.kind, "normal")
+            self.assertEqual(species_check.kind, "check")
+
+        def test_create_check_return_reason(self):
+            reason = self.env["financial.check.return.reason"].create(
+                {
+                    "code": "11",
+                    "name": "Cheque sem fundos",
+                    "description": "Devolvido por insuficiencia de fundos",
+                    "is_definitive": True,
+                }
+            )
+            self.assertEqual(reason.code, "11")
+            self.assertTrue(reason.is_definitive)
+
         def test_assign_multiple_withholding_lines_to_partner(self):
             partner = self.env["res.partner"].create({"name": "Fornecedor Com Retencao"})
             receiver_a = self.env["res.partner"].create({"name": "Contato Recebedor A"})

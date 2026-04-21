@@ -97,21 +97,79 @@ class ReceivableService(models.AbstractModel):
         settlement.ensure_one()
         if settlement.state != "draft":
             raise ValidationError("Only draft settlements can be applied.")
+        if settlement.settlement_kind == "third_party_check":
+            return self._apply_third_party_check_settlement(settlement)
         settlement.withholding_line_ids.unlink()
         for line in settlement.line_ids:
             if line.total_amount > line.installment_id.amount_open:
                 raise ValidationError("Settlement amount cannot exceed the installment open amount.")
-        withholding_vals_list = self._prepare_receivable_withholding_vals(settlement)
-        for vals in withholding_vals_list:
-            self.env["receivable.settlement.withholding"].create(
-                dict(vals, settlement_id=settlement.id)
-            )
-        if settlement.withholding_amount_total > settlement.gross_amount_total:
-            raise ValidationError(
-                "The monthly withholding due exceeds the current settlement gross amount."
-            )
+        title_species_kinds = set(settlement.line_ids.mapped("title_id.species_kind"))
+        if "check" not in title_species_kinds:
+            withholding_vals_list = self._prepare_receivable_withholding_vals(settlement)
+            for vals in withholding_vals_list:
+                self.env["receivable.settlement.withholding"].create(
+                    dict(vals, settlement_id=settlement.id)
+                )
+            if settlement.withholding_amount_total > settlement.gross_amount_total:
+                raise ValidationError(
+                    "The monthly withholding due exceeds the current settlement gross amount."
+                )
         if "financial.integration.service" in self.env.registry:
             self.env["financial.integration.service"].create_treasury_entry_from_receivable_settlement(settlement)
+        settlement.state = "applied"
+        settlement.line_ids.mapped("installment_id")._compute_amount_open()
+        settlement.line_ids.mapped("title_id")._compute_amounts()
+        return settlement
+
+    def _apply_third_party_check_settlement(self, settlement):
+        settlement.ensure_one()
+        if not settlement.third_party_check_line_ids:
+            raise ValidationError("Third-party check settlements require at least one check line.")
+        source_titles = settlement.line_ids.mapped("title_id")
+        if len(source_titles) != 1:
+            raise ValidationError("Third-party check substitution requires installments from a single title.")
+        source_title = source_titles[0]
+        if source_title.species_kind == "check":
+            raise ValidationError("Third-party check substitution cannot be applied to check titles.")
+        for line in settlement.line_ids:
+            if line.total_amount > line.installment_id.amount_open:
+                raise ValidationError("Settlement amount cannot exceed the installment open amount.")
+        check_total = sum(settlement.third_party_check_line_ids.mapped("amount"))
+        if round(check_total - settlement.gross_amount_total, 2) != 0:
+            raise ValidationError("Third-party check amounts must match the substituted balance.")
+        species_check = self.env.ref("custom_financial_base.financial_title_species_check")
+        for check_line in settlement.third_party_check_line_ids:
+            check_title = self.open_title(
+                {
+                    "name": f"Cheque {check_line.check_number}",
+                    "partner_id": settlement.partner_id.id,
+                    "company_id": settlement.company_id.id,
+                    "issue_date": settlement.date,
+                    "origin_reference": source_title.name,
+                    "species_id": species_check.id,
+                    "amount_total": check_line.amount,
+                    "notes": check_line.notes or settlement.notes,
+                    "source_settlement_id": settlement.id,
+                    "source_title_id": source_title.id,
+                    "check_issuer_name": check_line.issuer_name,
+                    "check_number": check_line.check_number,
+                    "check_bank_name": check_line.bank_name,
+                    "check_branch": check_line.branch,
+                    "check_account_number": check_line.account_number,
+                    "expected_clearance_date": check_line.expected_clearance_date,
+                    "check_status": "pending",
+                }
+            )
+            self.generate_installments(
+                check_title,
+                [
+                    {
+                        "sequence": 1,
+                        "due_date": check_line.expected_clearance_date,
+                        "amount": check_line.amount,
+                    }
+                ],
+            )
         settlement.state = "applied"
         settlement.line_ids.mapped("installment_id")._compute_amount_open()
         settlement.line_ids.mapped("title_id")._compute_amounts()

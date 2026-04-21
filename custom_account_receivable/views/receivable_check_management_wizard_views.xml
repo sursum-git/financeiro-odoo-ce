@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_receivable_check_compensation_wizard_form" model="ir.ui.view">
+        <field name="name">receivable.check.compensation.wizard.form</field>
+        <field name="model">receivable.check.compensation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Compensate Third-Party Check">
+                <sheet>
+                    <group>
+                        <field name="title_id"/>
+                        <field name="partner_id"/>
+                        <field name="company_id"/>
+                        <field name="amount_open"/>
+                    </group>
+                    <group>
+                        <field name="compensation_date"/>
+                        <field name="payment_method_id"/>
+                        <field name="portador_id"/>
+                        <field name="target_account_id"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_receivable_check_return_wizard_form" model="ir.ui.view">
+        <field name="name">receivable.check.return.wizard.form</field>
+        <field name="model">receivable.check.return.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Return Third-Party Check">
+                <sheet>
+                    <group>
+                        <field name="title_id"/>
+                        <field name="partner_id"/>
+                        <field name="company_id"/>
+                        <field name="amount_open"/>
+                    </group>
+                    <group>
+                        <field name="return_date"/>
+                        <field name="return_reason_id"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

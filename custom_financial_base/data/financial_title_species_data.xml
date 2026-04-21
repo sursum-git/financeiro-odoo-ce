@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="financial_title_species_normal" model="financial.title.species">
+        <field name="name">Normal</field>
+        <field name="code">NORMAL</field>
+        <field name="kind">normal</field>
+    </record>
+    <record id="financial_title_species_check" model="financial.title.species">
+        <field name="name">Cheque</field>
+        <field name="code">CHEQUE</field>
+        <field name="kind">check</field>
+    </record>
+    <record id="financial_title_species_bank_slip" model="financial.title.species">
+        <field name="name">Boleto</field>
+        <field name="code">BOLETO</field>
+        <field name="kind">bank_slip</field>
+    </record>
+    <record id="financial_title_species_promissory_note" model="financial.title.species">
+        <field name="name">Nota Promissoria</field>
+        <field name="code">NP</field>
+        <field name="kind">promissory_note</field>
+    </record>
+    <record id="financial_title_species_customer_advance" model="financial.title.species">
+        <field name="name">Adiantamento de Cliente</field>
+        <field name="code">ADT_CLIENTE</field>
+        <field name="kind">customer_advance</field>
+    </record>
+    <record id="financial_title_species_supplier_advance" model="financial.title.species">
+        <field name="name">Adiantamento de Fornecedor</field>
+        <field name="code">ADT_FORNECEDOR</field>
+        <field name="kind">supplier_advance</field>
+    </record>
+</odoo>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_financial_title_species_tree" model="ir.ui.view">
+        <field name="name">financial.title.species.tree</field>
+        <field name="model">financial.title.species</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="kind"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_financial_title_species_form" model="ir.ui.view">
+        <field name="name">financial.title.species.form</field>
+        <field name="model">financial.title.species</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="kind"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_financial_title_species" model="ir.actions.act_window">
+        <field name="name">Especies de Titulo</field>
+        <field name="res_model">financial.title.species</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_financial_title_species"
+        name="Especies de Titulo"
+        parent="custom_financial_base.custom_financial_base_menu_config"
+        action="action_financial_title_species"
+        sequence="15"
+    />
+</odoo>
