@@ -114,13 +114,14 @@ class ReceivableCollectionService(models.AbstractModel):
         )
         target_portador = target_cash_box.portador_id if target_cash_box else False
         out_move, in_move = self.env["treasury.cash.service"].create_accountability(
-            accountability.source_portador_id,
-            target_account,
-            target_portador,
-            accountability.amount,
-            accountability.company_id,
-            accountability.name,
-            accountability.date,
+            source_portador=accountability.source_portador_id,
+            target_account=target_account,
+            target_portador=target_portador,
+            amount=accountability.amount,
+            company=accountability.company_id,
+            name=accountability.name,
+            date=accountability.date,
+            currency=accountability.currency_id,
         )
         accountability.write(
             {

@@ -170,8 +170,27 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(len(installments), 3)
             self.assertEqual(sum(installments.mapped("amount")), title.amount_total)
 
+        def test_block_installments_total_different_from_title(self):
+            service = self.env["receivable.service"]
+            title = service.open_title(
+                {
+                    "name": "Titulo Divergente",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "amount_total": 100.0,
+                }
+            )
+            with self.assertRaises(ValidationError):
+                service.generate_installments(
+                    title,
+                    [
+                        {"due_date": "2026-05-10", "amount": 60.0},
+                        {"due_date": "2026-06-10", "amount": 30.0},
+                    ],
+                )
+
         def test_create_partial_settlement(self):
-            _title, installments = self._create_title_with_installments()
+            title, installments = self._create_title_with_installments()
             service = self.env["receivable.service"]
             settlement = service.create_settlement(
                 {
@@ -193,6 +212,7 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(settlement.state, "applied")
             self.assertEqual(installments[0].amount_open, 60.0)
             self.assertEqual(installments[0].state, "partial")
+            self.assertEqual(title.state, "partial")
 
         def test_update_open_amount(self):
             title, installments = self._create_title_with_installments()
@@ -394,14 +414,25 @@ if __name__.startswith("odoo.addons."):
 
         def test_apply_settlement_in_foreign_currency(self):
             service = self.env["receivable.service"]
-            _title, installment = self._create_single_installment_title_in_currency(
-                "Titulo Moeda Estrangeira", 100.0, "2026-05-10", self.currency_xre
+            partner = self.env["res.partner"].create({"name": "Cliente Sem Retencao FX"})
+            title = service.open_title(
+                {
+                    "name": "Titulo Moeda Estrangeira",
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                    "amount_total": 100.0,
+                    "currency_id": self.currency_xre.id,
+                }
             )
+            installment = service.generate_installments(
+                title,
+                [{"due_date": "2026-05-10", "amount": 100.0}],
+            )[0]
             settlement = service.create_settlement(
                 {
                     "name": "Liquidacao Moeda Estrangeira",
                     "date": "2026-05-10",
-                    "partner_id": self.partner.id,
+                    "partner_id": partner.id,
                     "company_id": self.env.company.id,
                     "currency_id": self.currency_xre.id,
                 },
@@ -419,6 +450,100 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(settlement.net_amount_total, 100.0)
             self.assertEqual(settlement.gross_amount_company_currency, expected_company_amount)
             self.assertEqual(settlement.net_amount_company_currency, expected_company_amount)
+
+        def test_monthly_withholding_uses_company_currency_across_mixed_currencies(self):
+            service = self.env["receivable.service"]
+            partner = self.env["res.partner"].create({"name": "Cliente Retencao Multimoeda"})
+            withholding_supplier = self.env["res.partner"].create(
+                {"name": "Favorecido Retencao Multimoeda"}
+            )
+            foreign_company_amount = self.currency_xre._convert(
+                100.0,
+                self.env.company.currency_id,
+                self.env.company,
+                "2026-05-15",
+            )
+            threshold = 200.0 + (foreign_company_amount / 2.0)
+            withholding_code = self.env["financial.withholding.code"].create(
+                {
+                    "name": "IRRF Multimoeda Receber",
+                    "code": "IRRF_MULTI_REC",
+                    "company_id": self.env.company.id,
+                    "minimum_payment_amount": threshold,
+                }
+            )
+            self.env["res.partner.withholding.line"].create(
+                {
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                    "withholding_code_id": withholding_code.id,
+                    "retention_percent": 10.0,
+                    "supplier_contact_id": withholding_supplier.id,
+                }
+            )
+            brl_title = service.open_title(
+                {
+                    "name": "Titulo BRL Ret Multimoeda",
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                    "amount_total": 200.0,
+                }
+            )
+            brl_installment = service.generate_installments(
+                brl_title,
+                [{"due_date": "2026-05-10", "amount": 200.0}],
+            )[0]
+            foreign_title = service.open_title(
+                {
+                    "name": "Titulo FX Ret Multimoeda",
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                    "amount_total": 100.0,
+                    "currency_id": self.currency_xre.id,
+                }
+            )
+            foreign_installment = service.generate_installments(
+                foreign_title,
+                [{"due_date": "2026-05-15", "amount": 100.0}],
+            )[0]
+
+            first = service.create_settlement(
+                {
+                    "name": "Liquidacao BRL",
+                    "date": "2026-05-10",
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                },
+                [{"installment_id": brl_installment.id, "principal_amount": 200.0}],
+            )
+            service.apply_settlement(first)
+            self.assertFalse(first.withholding_line_ids)
+
+            second = service.create_settlement(
+                {
+                    "name": "Liquidacao FX",
+                    "date": "2026-05-15",
+                    "partner_id": partner.id,
+                    "company_id": self.env.company.id,
+                    "currency_id": self.currency_xre.id,
+                },
+                [{"installment_id": foreign_installment.id, "principal_amount": 100.0}],
+            )
+            service.apply_settlement(second)
+            expected_company_withholding = (200.0 + foreign_company_amount) * 0.1
+            expected_foreign_withholding = self.env.company.currency_id._convert(
+                expected_company_withholding,
+                self.currency_xre,
+                self.env.company,
+                second.date,
+            )
+            self.assertEqual(second.withholding_amount_company_currency, expected_company_withholding)
+            self.assertEqual(second.withholding_amount_total, expected_foreign_withholding)
+            self.assertEqual(
+                second.withholding_line_ids[0].base_amount_company_currency,
+                200.0 + foreign_company_amount,
+            )
+            self.assertEqual(second.withholding_line_ids[0].previously_withheld_amount_company_currency, 0.0)
 
         def test_block_settlement_with_mixed_currencies(self):
             service = self.env["receivable.service"]

@@ -16,6 +16,12 @@ class ReceivableCollectionAccountability(models.Model):
     MSG_LIQUIDACAO_UNICA = "Uma liquidacao nao pode ser prestada mais de uma vez."
     MSG_LIQUIDACAO_APLICADA = "Somente liquidacoes aplicadas podem ser prestadas."
     MSG_PORTADOR_COBRADOR = "Todas as liquidacoes devem pertencer ao portador do cobrador."
+    MSG_LIQUIDACAO_MOEDA_UNICA = (
+        "Todas as liquidacoes da prestacao de contas devem estar na mesma moeda."
+    )
+    MSG_LIQUIDACAO_MOEDA_PORTADOR = (
+        "A moeda das liquidacoes deve ser igual a moeda do portador do cobrador."
+    )
 
     name = fields.Char(required=True, index=True)
     agent_id = fields.Many2one(
@@ -31,7 +37,7 @@ class ReceivableCollectionAccountability(models.Model):
         currency_field="currency_id",
     )
     currency_id = fields.Many2one(
-        related="company_id.currency_id",
+        related="source_portador_id.currency_id",
         store=True,
         readonly=True,
     )
@@ -73,10 +79,10 @@ class ReceivableCollectionAccountability(models.Model):
         string="Assignments",
     )
 
-    @api.depends("settlement_ids.line_ids.total_amount")
+    @api.depends("settlement_ids.net_amount_total")
     def _compute_amount(self):
         for accountability in self:
-            accountability.amount = sum(accountability.settlement_ids.mapped("line_ids.total_amount"))
+            accountability.amount = sum(accountability.settlement_ids.mapped("net_amount_total"))
 
     @api.constrains("target_account_id", "target_cash_box_id")
     def _check_target(self):
@@ -107,3 +113,8 @@ class ReceivableCollectionAccountability(models.Model):
                     raise ValidationError(self.MSG_LIQUIDACAO_APLICADA)
                 if settlement.portador_id != accountability.agent_id.portador_id:
                     raise ValidationError(self.MSG_PORTADOR_COBRADOR)
+            currencies = accountability.settlement_ids.mapped("currency_id")
+            if len(currencies) > 1:
+                raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_UNICA)
+            if currencies and accountability.currency_id and currencies[0] != accountability.currency_id:
+                raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_PORTADOR)

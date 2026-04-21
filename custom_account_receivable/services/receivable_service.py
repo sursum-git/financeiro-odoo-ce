@@ -33,6 +33,9 @@ class ReceivableService(models.AbstractModel):
     MSG_LIQUIDACAO_MOEDA_DIVERGENTE = (
         "A moeda da liquidacao deve ser igual a moeda das parcelas selecionadas."
     )
+    MSG_TOTAL_PARCELAS_DIVERGENTE = (
+        "A soma das parcelas deve ser igual ao valor total do titulo a receber."
+    )
 
     def _get_month_limits(self, target_date):
         target_date = fields.Date.to_date(target_date)
@@ -40,6 +43,11 @@ class ReceivableService(models.AbstractModel):
         next_month = (month_start + timedelta(days=32)).replace(day=1)
         month_end = next_month - timedelta(days=1)
         return month_start, month_end
+
+    def _convert_amount(self, amount, from_currency, to_currency, company, date):
+        if not from_currency or not to_currency or from_currency == to_currency:
+            return amount
+        return from_currency._convert(amount, to_currency, company, date)
 
     def _prepare_receivable_withholding_vals(self, settlement):
         settlement.ensure_one()
@@ -53,36 +61,65 @@ class ReceivableService(models.AbstractModel):
             [
                 ("partner_id", "=", settlement.partner_id.id),
                 ("company_id", "=", settlement.company_id.id),
-                ("currency_id", "=", settlement.currency_id.id),
+                ("settlement_kind", "=", "standard"),
                 ("state", "=", "applied"),
                 ("date", ">=", month_start),
                 ("date", "<=", month_end),
                 ("id", "!=", settlement.id),
             ]
         )
-        monthly_gross_total = sum(prior_settlements.mapped("gross_amount_total")) + settlement.gross_amount_total
+        monthly_gross_total_company = (
+            sum(prior_settlements.mapped("gross_amount_company_currency"))
+            + settlement.gross_amount_company_currency
+        )
         vals_list = []
         for partner_line in partner_lines:
             code = partner_line.withholding_code_id
-            if monthly_gross_total < code.minimum_payment_amount:
+            if monthly_gross_total_company < code.minimum_payment_amount:
                 continue
-            monthly_withholding_total = monthly_gross_total * (partner_line.retention_percent / 100.0)
-            if monthly_withholding_total < code.minimum_retention_amount:
+            monthly_withholding_total_company = monthly_gross_total_company * (
+                partner_line.retention_percent / 100.0
+            )
+            if monthly_withholding_total_company < code.minimum_retention_amount:
                 continue
-            previous_amount = sum(
+            previous_amount_company = sum(
                 prior_settlements.mapped("withholding_line_ids")
                 .filtered(lambda line: line.withholding_code_id == code)
-                .mapped("amount")
+                .mapped("amount_company_currency")
             )
-            current_amount = monthly_withholding_total - previous_amount
-            if current_amount <= 0:
+            current_amount_company = monthly_withholding_total_company - previous_amount_company
+            if current_amount_company <= 0:
                 continue
+            base_amount = self._convert_amount(
+                monthly_gross_total_company,
+                settlement.company_currency_id,
+                settlement.currency_id,
+                settlement.company_id,
+                settlement.date,
+            )
+            previous_amount = self._convert_amount(
+                previous_amount_company,
+                settlement.company_currency_id,
+                settlement.currency_id,
+                settlement.company_id,
+                settlement.date,
+            )
+            current_amount = self._convert_amount(
+                current_amount_company,
+                settlement.company_currency_id,
+                settlement.currency_id,
+                settlement.company_id,
+                settlement.date,
+            )
             vals_list.append(
                 {
                     "partner_withholding_line_id": partner_line.id,
-                    "base_amount": monthly_gross_total,
+                    "base_amount": base_amount,
                     "previously_withheld_amount": previous_amount,
                     "amount": current_amount,
+                    "base_amount_company_currency": monthly_gross_total_company,
+                    "previously_withheld_amount_company_currency": previous_amount_company,
+                    "amount_company_currency": current_amount_company,
                 }
             )
         return vals_list
@@ -102,6 +139,9 @@ class ReceivableService(models.AbstractModel):
                 "amount": vals["amount"],
             }
             installments |= self.env["receivable.installment"].create(values)
+        total_installments = sum(installments.mapped("amount"))
+        if title.currency_id.compare_amounts(total_installments, title.amount_total) != 0:
+            raise ValidationError(self.MSG_TOTAL_PARCELAS_DIVERGENTE)
         title._compute_amounts()
         return installments
 

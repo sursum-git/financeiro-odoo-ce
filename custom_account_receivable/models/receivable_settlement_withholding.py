@@ -23,6 +23,11 @@ class ReceivableSettlementWithholding(models.Model):
         store=True,
         readonly=True,
     )
+    company_currency_id = fields.Many2one(
+        related="company_id.currency_id",
+        store=True,
+        readonly=True,
+    )
     withholding_code_id = fields.Many2one(
         related="partner_withholding_line_id.withholding_code_id",
         store=True,
@@ -51,6 +56,21 @@ class ReceivableSettlementWithholding(models.Model):
     amount = fields.Monetary(
         required=True,
         currency_field="currency_id",
+        readonly=True,
+    )
+    base_amount_company_currency = fields.Monetary(
+        required=True,
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+    previously_withheld_amount_company_currency = fields.Monetary(
+        required=True,
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+    amount_company_currency = fields.Monetary(
+        required=True,
+        currency_field="company_currency_id",
         readonly=True,
     )
     currency_id = fields.Many2one(

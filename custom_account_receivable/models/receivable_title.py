@@ -194,5 +194,10 @@ class ReceivableTitle(models.Model):
                 inst.state == "paid" for inst in installments
             ):
                 title.state = "partial"
+            elif any(inst.state == "partial" for inst in installments) or (
+                any(inst.state == "paid" for inst in installments)
+                and any(inst.state in {"open", "partial"} for inst in installments)
+            ):
+                title.state = "partial"
             elif any(inst.state in {"open", "partial"} for inst in installments):
                 title.state = "open"
