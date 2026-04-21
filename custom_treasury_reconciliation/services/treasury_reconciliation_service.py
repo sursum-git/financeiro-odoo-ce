@@ -6,6 +6,16 @@ class TreasuryReconciliationService(models.AbstractModel):
     _name = "treasury.reconciliation.service"
     _description = "Treasury Reconciliation Service"
 
+    MSG_LINHA_JA_CONCILIADA = "A linha do extrato ja esta conciliada."
+    MSG_MOVIMENTO_JA_CONCILIADO = "O movimento ja esta conciliado."
+    MSG_CONCILIACAO_OBRIGATORIA = "E obrigatorio informar uma conciliacao para vincular as linhas."
+    MSG_DIFERENCA_POSITIVA = "O ajuste exige uma diferenca remanescente positiva."
+    MSG_PENDENCIAS_FINALIZACAO = (
+        "As linhas pendentes da conciliacao devem ser resolvidas antes da finalizacao."
+    )
+    MSG_VINCULO_AUTOMATICO = "Vinculado pelo servico de conciliacao."
+    MSG_AJUSTE_CRIADO = "Ajuste criado durante a conciliacao."
+
     @property
     def _movement_service(self):
         return self.env["treasury.movement.service"]
@@ -36,19 +46,19 @@ class TreasuryReconciliationService(models.AbstractModel):
 
     def match_line(self, statement_line, movement, reconciliation=None):
         if statement_line.is_reconciled:
-            raise ValidationError("Statement line is already reconciled.")
+            raise ValidationError(self.MSG_LINHA_JA_CONCILIADA)
         if movement.is_reconciled:
-            raise ValidationError("Movement is already reconciled.")
+            raise ValidationError(self.MSG_MOVIMENTO_JA_CONCILIADO)
         line_vals = {
             "statement_line_id": statement_line.id,
             "movement_id": movement.id,
             "status": "matched",
-            "notes": "Matched by reconciliation service.",
+            "notes": self.MSG_VINCULO_AUTOMATICO,
         }
         if reconciliation:
             line_vals["reconciliation_id"] = reconciliation.id
         else:
-            raise ValidationError("A reconciliation is required to match lines.")
+            raise ValidationError(self.MSG_CONCILIACAO_OBRIGATORIA)
         line = self.env["treasury.reconciliation.line"].create(line_vals)
         statement_line.write({"is_reconciled": True, "movement_id": movement.id})
         movement.with_context(skip_post_lock=True).write({"is_reconciled": True})
@@ -57,10 +67,10 @@ class TreasuryReconciliationService(models.AbstractModel):
     def create_adjustment(self, reconciliation, statement_line, movement=None, notes=None):
         reconciliation.ensure_one()
         if statement_line.is_reconciled:
-            raise ValidationError("Statement line is already reconciled.")
+            raise ValidationError(self.MSG_LINHA_JA_CONCILIADA)
         difference = statement_line.amount - (abs(movement.signed_amount) if movement else 0.0)
         if difference <= 0:
-            raise ValidationError("Adjustment requires a positive remaining difference.")
+            raise ValidationError(self.MSG_DIFERENCA_POSITIVA)
         reason = self.env["financial.movement.reason"].search(
             [("company_id", "=", reconciliation.company_id.id), ("type", "=", "ajuste")],
             limit=1,
@@ -95,7 +105,7 @@ class TreasuryReconciliationService(models.AbstractModel):
                 "statement_line_id": statement_line.id,
                 "movement_id": movement.id if movement else False,
                 "status": "adjusted",
-                "notes": notes or "Adjustment created during reconciliation.",
+                "notes": notes or self.MSG_AJUSTE_CRIADO,
                 "adjustment_movement_id": adjustment.id,
             }
         )
@@ -106,6 +116,6 @@ class TreasuryReconciliationService(models.AbstractModel):
     def finalize_reconciliation(self, reconciliation):
         reconciliation.ensure_one()
         if any(line.status == "pending" for line in reconciliation.line_ids):
-            raise UserError("Pending reconciliation lines must be resolved before finalizing.")
+            raise UserError(self.MSG_PENDENCIAS_FINALIZACAO)
         reconciliation.state = "done"
         return reconciliation

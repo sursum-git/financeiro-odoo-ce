@@ -7,6 +7,13 @@ class ReceivableCollectionAgent(models.Model):
     _description = "Receivable Collection Agent"
     _order = "name"
 
+    MSG_PORTADOR_UNICO_EMPRESA = (
+        "Um portador do tipo cobrador so pode ser vinculado uma vez por empresa."
+    )
+    MSG_PORTADOR_TIPO_INVALIDO = "O portador do cobrador deve ser do tipo cobrador."
+    MSG_PORTADOR_EMPRESA_DIFERENTE = "O portador do cobrador deve pertencer a mesma empresa."
+    MSG_CONTATO_EMPRESA_DIFERENTE = "O contato do cobrador deve pertencer a mesma empresa."
+
     name = fields.Char(required=True, index=True)
     partner_id = fields.Many2one("res.partner", ondelete="restrict", index=True)
     user_id = fields.Many2one("res.users", ondelete="restrict", index=True)
@@ -35,19 +42,19 @@ class ReceivableCollectionAgent(models.Model):
 
     _receivable_collection_agent_portador_company_uniq = models.Constraint(
         "unique(portador_id, company_id)",
-        "A cobrador portador can only be linked once per company.",
+        MSG_PORTADOR_UNICO_EMPRESA,
     )
 
     @api.constrains("portador_id", "company_id")
     def _check_portador(self):
         for agent in self:
             if agent.portador_id.type != "cobrador":
-                raise ValidationError("The agent portador must be of type cobrador.")
+                raise ValidationError(self.MSG_PORTADOR_TIPO_INVALIDO)
             if agent.portador_id.company_id and agent.portador_id.company_id != agent.company_id:
-                raise ValidationError("The agent portador must belong to the same company.")
+                raise ValidationError(self.MSG_PORTADOR_EMPRESA_DIFERENTE)
 
     @api.constrains("partner_id", "company_id")
     def _check_related_company(self):
         for agent in self:
             if agent.partner_id.company_id and agent.partner_id.company_id != agent.company_id:
-                raise ValidationError("The agent partner must belong to the same company.")
+                raise ValidationError(self.MSG_CONTATO_EMPRESA_DIFERENTE)

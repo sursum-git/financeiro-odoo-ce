@@ -7,6 +7,11 @@ class ReceivableSettlementLine(models.Model):
     _description = "Receivable Settlement Line"
     _order = "id"
 
+    MSG_VALORES_NAO_NEGATIVOS = "Os valores da liquidacao nao podem ser negativos."
+    MSG_LIQUIDACAO_EXCEDE_SALDO = (
+        "O valor da liquidacao nao pode exceder o saldo em aberto da parcela."
+    )
+
     settlement_id = fields.Many2one(
         "receivable.settlement",
         required=True,
@@ -50,6 +55,6 @@ class ReceivableSettlementLine(models.Model):
     def _check_amounts(self):
         for line in self:
             if line.principal_amount < 0 or line.total_amount < 0:
-                raise ValidationError("Settlement amounts cannot be negative.")
+                raise ValidationError(self.MSG_VALORES_NAO_NEGATIVOS)
             if line.settlement_id.state == "draft" and line.total_amount > line.installment_id.amount_open:
-                raise ValidationError("Settlement amount cannot exceed the installment open amount.")
+                raise ValidationError(self.MSG_LIQUIDACAO_EXCEDE_SALDO)

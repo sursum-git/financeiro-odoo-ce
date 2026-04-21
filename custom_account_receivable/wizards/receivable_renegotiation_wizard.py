@@ -6,6 +6,12 @@ class ReceivableRenegotiationWizard(models.TransientModel):
     _name = "receivable.renegotiation.wizard"
     _description = "Receivable Renegotiation Wizard"
 
+    MSG_TITULO_RENEGOCIACAO_INVALIDA = (
+        "Somente titulos abertos com saldo pendente podem ser renegociados."
+    )
+    MSG_EXIGE_PARCELA = "A renegociacao exige ao menos uma nova parcela."
+    MSG_TOTAL_POSITIVO = "O valor total da renegociacao deve ser positivo."
+
     source_title_id = fields.Many2one(
         "receivable.title",
         required=True,
@@ -74,11 +80,11 @@ class ReceivableRenegotiationWizard(models.TransientModel):
         self.ensure_one()
         title = self.source_title_id
         if title.state not in {"open", "partial"} or title.amount_open <= 0:
-            raise ValidationError("Only open titles with outstanding balance can be renegotiated.")
+            raise ValidationError(self.MSG_TITULO_RENEGOCIACAO_INVALIDA)
         if not self.installment_line_ids:
-            raise ValidationError("Renegotiation requires at least one new installment.")
+            raise ValidationError(self.MSG_EXIGE_PARCELA)
         if self.new_amount_total <= 0:
-            raise ValidationError("Renegotiation total must be positive.")
+            raise ValidationError(self.MSG_TOTAL_POSITIVO)
         installment_vals_list = []
         for line in self.installment_line_ids.sorted("sequence"):
             installment_vals_list.append(
@@ -103,7 +109,7 @@ class ReceivableRenegotiationWizard(models.TransientModel):
         )
         return {
             "type": "ir.actions.act_window",
-            "name": "Renegotiation",
+            "name": "Renegociacao",
             "res_model": "receivable.renegotiation",
             "res_id": renegotiation.id,
             "view_mode": "form",
@@ -115,6 +121,8 @@ class ReceivableRenegotiationWizardLine(models.TransientModel):
     _name = "receivable.renegotiation.wizard.line"
     _description = "Receivable Renegotiation Wizard Line"
     _order = "sequence, id"
+
+    MSG_VALOR_PARCELA_POSITIVO = "O valor da parcela deve ser positivo."
 
     wizard_id = fields.Many2one(
         "receivable.renegotiation.wizard",
@@ -136,4 +144,4 @@ class ReceivableRenegotiationWizardLine(models.TransientModel):
     def _check_amount(self):
         for line in self:
             if line.amount <= 0:
-                raise ValidationError("Installment amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_PARCELA_POSITIVO)

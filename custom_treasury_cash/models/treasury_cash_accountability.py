@@ -7,6 +7,12 @@ class TreasuryCashAccountability(models.Model):
     _description = "Treasury Cash Accountability"
     _order = "date desc, id desc"
 
+    MSG_VALOR_POSITIVO = "O valor da prestacao de contas deve ser positivo."
+    MSG_DESTINO_OBRIGATORIO = "E obrigatoria uma conta ou um portador de destino."
+    MSG_CANCELAMENTO_SOMENTE_CONFIRMADA = (
+        "Somente prestacoes de contas confirmadas podem ser canceladas."
+    )
+
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     company_id = fields.Many2one(
@@ -52,9 +58,9 @@ class TreasuryCashAccountability(models.Model):
             if record.state != "draft":
                 continue
             if record.amount <= 0:
-                raise ValidationError("Accountability amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_POSITIVO)
             if not record.target_account_id and not record.target_portador_id:
-                raise ValidationError("A target account or target portador is required.")
+                raise ValidationError(self.MSG_DESTINO_OBRIGATORIO)
             out_move, in_move = record._cash_service.create_accountability(
                 source_portador=record.source_portador_id,
                 target_account=record.target_account_id,
@@ -75,7 +81,7 @@ class TreasuryCashAccountability(models.Model):
     def action_cancel(self):
         for record in self:
             if record.state != "confirmed":
-                raise UserError("Only confirmed accountabilities can be cancelled.")
+                raise UserError(self.MSG_CANCELAMENTO_SOMENTE_CONFIRMADA)
             self.env["treasury.movement.service"].reverse_movement(record.out_movement_id)
             self.env["treasury.movement.service"].reverse_movement(record.in_movement_id)
             record.state = "cancelled"

@@ -7,6 +7,14 @@ class TreasuryMovement(models.Model):
     _description = "Treasury Movement"
     _order = "date desc, id desc"
 
+    MSG_VALOR_POSITIVO = "O valor do movimento deve ser positivo."
+    MSG_EXIGE_CONTA_OU_PORTADOR = "O movimento exige uma conta ou um portador."
+    MSG_CONTA_EMPRESA_DIFERENTE = "A conta deve pertencer a mesma empresa."
+    MSG_PORTADOR_EMPRESA_DIFERENTE = "O portador deve pertencer a mesma empresa."
+    MSG_CONCILIADO_SEM_EDICAO = "Movimentos conciliados nao podem ser editados livremente."
+    MSG_POSTADO_SEM_EDICAO = "Movimentos postados nao podem ser editados livremente."
+    MSG_POSTADO_SEM_EXCLUSAO = "Movimentos postados nao podem ser excluidos."
+
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     company_id = fields.Many2one(
@@ -99,25 +107,25 @@ class TreasuryMovement(models.Model):
     def _check_amount_positive(self):
         for record in self:
             if record.amount <= 0:
-                raise ValidationError("Movement amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_POSITIVO)
 
     @api.constrains("account_id", "portador_id")
     def _check_financial_target(self):
         for record in self:
             if not record.account_id and not record.portador_id:
-                raise ValidationError("A movement requires an account or a portador.")
+                raise ValidationError(self.MSG_EXIGE_CONTA_OU_PORTADOR)
 
     @api.constrains("account_id", "company_id")
     def _check_account_company(self):
         for record in self.filtered("account_id"):
             if record.account_id.company_id != record.company_id:
-                raise ValidationError("The account must belong to the same company.")
+                raise ValidationError(self.MSG_CONTA_EMPRESA_DIFERENTE)
 
     @api.constrains("portador_id", "company_id")
     def _check_portador_company(self):
         for record in self.filtered("portador_id"):
             if record.portador_id.company_id and record.portador_id.company_id != record.company_id:
-                raise ValidationError("The portador must belong to the same company.")
+                raise ValidationError(self.MSG_PORTADOR_EMPRESA_DIFERENTE)
 
     def write(self, vals):
         if self.env.context.get("skip_post_lock"):
@@ -125,13 +133,13 @@ class TreasuryMovement(models.Model):
         restricted_fields = set(vals) - {"is_reconciled", "active"}
         for record in self:
             if record.is_reconciled and restricted_fields:
-                raise UserError("Reconciled movements cannot be edited freely.")
+                raise UserError(self.MSG_CONCILIADO_SEM_EDICAO)
             if record.state == "posted" and restricted_fields:
-                raise UserError("Posted movements cannot be edited freely.")
+                raise UserError(self.MSG_POSTADO_SEM_EDICAO)
         return super().write(vals)
 
     def unlink(self):
         for record in self:
             if record.state == "posted":
-                raise UserError("Posted movements cannot be deleted.")
+                raise UserError(self.MSG_POSTADO_SEM_EXCLUSAO)
         return super().unlink()

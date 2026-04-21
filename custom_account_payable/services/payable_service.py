@@ -8,6 +8,14 @@ class PayableService(models.AbstractModel):
     _name = "payable.service"
     _description = "Payable Service"
 
+    MSG_PAGAMENTO_RASCUNHO = "Somente pagamentos em rascunho podem ser aplicados."
+    MSG_PAGAMENTO_EXCEDE_SALDO = (
+        "O valor do pagamento nao pode exceder o saldo em aberto da parcela."
+    )
+    MSG_RETENCAO_EXCEDE_BRUTO = (
+        "A retencao mensal devida excede o valor bruto do pagamento atual."
+    )
+
     def _get_month_limits(self, target_date):
         target_date = fields.Date.to_date(target_date)
         month_start = target_date.replace(day=1)
@@ -102,18 +110,16 @@ class PayableService(models.AbstractModel):
     def apply_payment(self, payment):
         payment.ensure_one()
         if payment.state != "draft":
-            raise ValidationError("Only draft payments can be applied.")
+            raise ValidationError(self.MSG_PAGAMENTO_RASCUNHO)
         payment.withholding_line_ids.unlink()
         for line in payment.line_ids:
             if line.total_amount > line.installment_id.amount_open:
-                raise ValidationError("Payment amount cannot exceed the installment open amount.")
+                raise ValidationError(self.MSG_PAGAMENTO_EXCEDE_SALDO)
         withholding_vals_list = self._prepare_payable_withholding_vals(payment)
         for vals in withholding_vals_list:
             self.env["payable.payment.withholding"].create(dict(vals, payment_id=payment.id))
         if payment.withholding_amount_total > payment.gross_amount_total:
-            raise ValidationError(
-                "The monthly withholding due exceeds the current payment gross amount."
-            )
+            raise ValidationError(self.MSG_RETENCAO_EXCEDE_BRUTO)
         if "financial.integration.service" in self.env.registry:
             self.env["financial.integration.service"].create_treasury_exit_from_payable_payment(payment)
         payment.state = "applied"

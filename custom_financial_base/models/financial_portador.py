@@ -6,6 +6,8 @@ class FinancialPortador(models.Model):
     _description = "Financial Portador"
     _order = "name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo do portador deve ser unico por empresa."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(index=True)
     type = fields.Selection(
@@ -33,5 +35,5 @@ class FinancialPortador(models.Model):
 
     _financial_portador_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "O codigo do portador deve ser unico por empresa.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )

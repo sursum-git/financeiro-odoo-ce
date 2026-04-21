@@ -7,6 +7,8 @@ class ReceivableSettlementCheckLine(models.Model):
     _description = "Receivable Settlement Third-Party Check Line"
     _order = "id"
 
+    MSG_VALOR_CHEQUE_POSITIVO = "O valor do cheque de terceiro deve ser positivo."
+
     settlement_id = fields.Many2one(
         "receivable.settlement",
         required=True,
@@ -31,4 +33,4 @@ class ReceivableSettlementCheckLine(models.Model):
     def _check_amount(self):
         for line in self:
             if line.amount <= 0:
-                raise ValidationError("Third-party check amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_CHEQUE_POSITIVO)

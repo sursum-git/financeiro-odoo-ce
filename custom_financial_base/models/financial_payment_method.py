@@ -6,6 +6,8 @@ class FinancialPaymentMethod(models.Model):
     _description = "Financial Payment Method"
     _order = "name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo da forma de pagamento deve ser unico por empresa."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(index=True)
     type = fields.Selection(
@@ -36,5 +38,5 @@ class FinancialPaymentMethod(models.Model):
 
     _financial_payment_method_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "O codigo da forma de pagamento deve ser unico por empresa.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )

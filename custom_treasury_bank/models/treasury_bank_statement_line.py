@@ -7,6 +7,8 @@ class TreasuryBankStatementLine(models.Model):
     _description = "Treasury Bank Statement Line"
     _order = "date, id"
 
+    MSG_VALOR_POSITIVO = "O valor da linha do extrato deve ser positivo."
+
     import_id = fields.Many2one(
         "treasury.bank.statement.import",
         required=True,
@@ -40,4 +42,4 @@ class TreasuryBankStatementLine(models.Model):
     def _check_positive_amount(self):
         for line in self:
             if line.amount <= 0:
-                raise ValidationError("Statement line amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_POSITIVO)

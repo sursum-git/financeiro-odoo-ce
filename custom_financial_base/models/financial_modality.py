@@ -6,6 +6,8 @@ class FinancialModality(models.Model):
     _description = "Financial Modality"
     _order = "name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo da modalidade deve ser unico por empresa."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(index=True)
     tipo_operacao = fields.Selection(
@@ -30,5 +32,5 @@ class FinancialModality(models.Model):
 
     _financial_modality_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "O codigo da modalidade deve ser unico por empresa.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )

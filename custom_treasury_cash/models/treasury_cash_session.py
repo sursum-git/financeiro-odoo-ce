@@ -7,6 +7,13 @@ class TreasuryCashSession(models.Model):
     _description = "Treasury Cash Session"
     _order = "opened_at desc, id desc"
 
+    MSG_SESSAO_ABERTA_EXISTENTE = "Ja existe uma sessao aberta para este caixa."
+    MSG_CAIXA_EMPRESA_DIFERENTE = "O caixa deve pertencer a mesma empresa."
+    MSG_ABERTURA_SOMENTE_RASCUNHO = "Somente sessoes em rascunho podem ser abertas."
+    MSG_FECHAMENTO_SOMENTE_ABERTA = "Somente sessoes abertas podem ser fechadas."
+    MSG_MOTIVO_DIFERENCA_OBRIGATORIO = "E obrigatorio informar um motivo para diferenca de caixa."
+    MSG_SESSAO_FECHADA_SEM_CANCELAMENTO = "Sessoes fechadas nao podem ser canceladas."
+
     name = fields.Char(required=True, index=True)
     cash_box_id = fields.Many2one(
         "treasury.cash.box",
@@ -88,18 +95,18 @@ class TreasuryCashSession(models.Model):
                 ("state", "=", "open"),
             ]
             if self.search_count(domain):
-                raise ValidationError("There is already an open session for this cash box.")
+                raise ValidationError(self.MSG_SESSAO_ABERTA_EXISTENTE)
 
     @api.constrains("cash_box_id", "company_id")
     def _check_company_consistency(self):
         for session in self:
             if session.cash_box_id.company_id != session.company_id:
-                raise ValidationError("The cash box must belong to the same company.")
+                raise ValidationError(self.MSG_CAIXA_EMPRESA_DIFERENTE)
 
     def action_open(self):
         for session in self:
             if session.state != "draft":
-                raise UserError("Only draft sessions can be opened.")
+                raise UserError(self.MSG_ABERTURA_SOMENTE_RASCUNHO)
             session.write(
                 {
                     "state": "open",
@@ -110,7 +117,7 @@ class TreasuryCashSession(models.Model):
     def action_close(self):
         for session in self:
             if session.state != "open":
-                raise UserError("Only open sessions can be closed.")
+                raise UserError(self.MSG_FECHAMENTO_SOMENTE_ABERTA)
             parameter = self.env["financial.parameter"].search(
                 [("company_id", "=", session.company_id.id)],
                 limit=1,
@@ -120,7 +127,7 @@ class TreasuryCashSession(models.Model):
                 and session.difference_amount
                 and not session.difference_reason
             ):
-                raise ValidationError("A reason is required for cash differences.")
+                raise ValidationError(self.MSG_MOTIVO_DIFERENCA_OBRIGATORIO)
             session.write(
                 {
                     "state": "closed",
@@ -131,5 +138,5 @@ class TreasuryCashSession(models.Model):
     def action_cancel(self):
         for session in self:
             if session.state == "closed":
-                raise UserError("Closed sessions cannot be cancelled.")
+                raise UserError(self.MSG_SESSAO_FECHADA_SEM_CANCELAMENTO)
             session.state = "cancelled"

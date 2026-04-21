@@ -6,6 +6,8 @@ class TreasuryAccount(models.Model):
     _description = "Treasury Account"
     _order = "name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo da conta de tesouraria deve ser unico por empresa."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(index=True)
     type = fields.Selection(
@@ -35,5 +37,5 @@ class TreasuryAccount(models.Model):
 
     _treasury_account_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "The treasury account code must be unique per company.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )

@@ -6,6 +6,8 @@ class TreasuryCashBox(models.Model):
     _description = "Treasury Cash Box"
     _order = "name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo do caixa deve ser unico por empresa."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(index=True)
     company_id = fields.Many2one(
@@ -24,5 +26,5 @@ class TreasuryCashBox(models.Model):
 
     _treasury_cash_box_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "The cash box code must be unique per company.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )

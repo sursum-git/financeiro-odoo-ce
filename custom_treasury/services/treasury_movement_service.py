@@ -6,15 +6,18 @@ class TreasuryMovementService(models.AbstractModel):
     _name = "treasury.movement.service"
     _description = "Treasury Movement Service"
 
+    MSG_VALOR_POSITIVO = "O valor do movimento deve ser positivo."
+    MSG_MOVIMENTO_CANCELADO = "Movimentos cancelados nao podem ser postados."
+
     def create_movement(self, vals):
         if vals.get("amount", 0) <= 0:
-            raise ValidationError("Movement amount must be positive.")
+            raise ValidationError(self.MSG_VALOR_POSITIVO)
         return self.env["treasury.movement"].create(vals)
 
     def post_movement(self, movement):
         movement.ensure_one()
         if movement.state == "cancelled":
-            raise ValidationError("Cancelled movements cannot be posted.")
+            raise ValidationError(self.MSG_MOVIMENTO_CANCELADO)
         if movement.state == "posted":
             return movement
         movement.with_context(skip_post_lock=True).write({"state": "posted"})

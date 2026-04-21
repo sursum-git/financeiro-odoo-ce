@@ -8,6 +8,26 @@ class ReceivableService(models.AbstractModel):
     _name = "receivable.service"
     _description = "Receivable Service"
 
+    MSG_LIQUIDACAO_RASCUNHO = "Somente liquidacoes em rascunho podem ser aplicadas."
+    MSG_LIQUIDACAO_EXCEDE_SALDO = (
+        "O valor da liquidacao nao pode exceder o saldo em aberto da parcela."
+    )
+    MSG_RETENCAO_EXCEDE_BRUTO = (
+        "A retencao mensal devida excede o valor bruto da liquidacao atual."
+    )
+    MSG_CHEQUE_EXIGE_LINHAS = (
+        "Liquidacoes com cheque de terceiros exigem ao menos uma linha de cheque."
+    )
+    MSG_CHEQUE_TITULO_UNICO = (
+        "A substituicao por cheque de terceiros exige parcelas de um unico titulo."
+    )
+    MSG_CHEQUE_NAO_PERMITE_CHEQUE = (
+        "A substituicao por cheque de terceiros nao pode ser aplicada a titulos de cheque."
+    )
+    MSG_CHEQUE_TOTAL_DIVERGENTE = (
+        "Os valores dos cheques de terceiros devem ser iguais ao saldo substituido."
+    )
+
     def _get_month_limits(self, target_date):
         target_date = fields.Date.to_date(target_date)
         month_start = target_date.replace(day=1)
@@ -96,13 +116,13 @@ class ReceivableService(models.AbstractModel):
     def apply_settlement(self, settlement):
         settlement.ensure_one()
         if settlement.state != "draft":
-            raise ValidationError("Only draft settlements can be applied.")
+            raise ValidationError(self.MSG_LIQUIDACAO_RASCUNHO)
         if settlement.settlement_kind == "third_party_check":
             return self._apply_third_party_check_settlement(settlement)
         settlement.withholding_line_ids.unlink()
         for line in settlement.line_ids:
             if line.total_amount > line.installment_id.amount_open:
-                raise ValidationError("Settlement amount cannot exceed the installment open amount.")
+                raise ValidationError(self.MSG_LIQUIDACAO_EXCEDE_SALDO)
         title_species_kinds = set(settlement.line_ids.mapped("title_id.species_kind"))
         if "check" not in title_species_kinds:
             withholding_vals_list = self._prepare_receivable_withholding_vals(settlement)
@@ -111,9 +131,7 @@ class ReceivableService(models.AbstractModel):
                     dict(vals, settlement_id=settlement.id)
                 )
             if settlement.withholding_amount_total > settlement.gross_amount_total:
-                raise ValidationError(
-                    "The monthly withholding due exceeds the current settlement gross amount."
-                )
+                raise ValidationError(self.MSG_RETENCAO_EXCEDE_BRUTO)
         if "financial.integration.service" in self.env.registry:
             self.env["financial.integration.service"].create_treasury_entry_from_receivable_settlement(settlement)
         settlement.state = "applied"
@@ -124,19 +142,19 @@ class ReceivableService(models.AbstractModel):
     def _apply_third_party_check_settlement(self, settlement):
         settlement.ensure_one()
         if not settlement.third_party_check_line_ids:
-            raise ValidationError("Third-party check settlements require at least one check line.")
+            raise ValidationError(self.MSG_CHEQUE_EXIGE_LINHAS)
         source_titles = settlement.line_ids.mapped("title_id")
         if len(source_titles) != 1:
-            raise ValidationError("Third-party check substitution requires installments from a single title.")
+            raise ValidationError(self.MSG_CHEQUE_TITULO_UNICO)
         source_title = source_titles[0]
         if source_title.species_kind == "check":
-            raise ValidationError("Third-party check substitution cannot be applied to check titles.")
+            raise ValidationError(self.MSG_CHEQUE_NAO_PERMITE_CHEQUE)
         for line in settlement.line_ids:
             if line.total_amount > line.installment_id.amount_open:
-                raise ValidationError("Settlement amount cannot exceed the installment open amount.")
+                raise ValidationError(self.MSG_LIQUIDACAO_EXCEDE_SALDO)
         check_total = sum(settlement.third_party_check_line_ids.mapped("amount"))
         if round(check_total - settlement.gross_amount_total, 2) != 0:
-            raise ValidationError("Third-party check amounts must match the substituted balance.")
+            raise ValidationError(self.MSG_CHEQUE_TOTAL_DIVERGENTE)
         species_check = self.env.ref("custom_financial_base.financial_title_species_check")
         for check_line in settlement.third_party_check_line_ids:
             check_title = self.open_title(

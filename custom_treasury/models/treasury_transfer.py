@@ -7,6 +7,16 @@ class TreasuryTransfer(models.Model):
     _description = "Treasury Transfer"
     _order = "date desc, id desc"
 
+    MSG_VALOR_POSITIVO = "O valor da transferencia deve ser positivo."
+    MSG_ORIGEM_OBRIGATORIA = "A origem da transferencia e obrigatoria."
+    MSG_DESTINO_OBRIGATORIO = "O destino da transferencia e obrigatorio."
+    MSG_CONTAS_DIFERENTES = "As contas de origem e destino devem ser diferentes."
+    MSG_PORTADORES_DIFERENTES = "Os portadores de origem e destino devem ser diferentes."
+    MSG_CANCELAMENTO_SOMENTE_CONFIRMADA = (
+        "Somente transferencias confirmadas podem ser canceladas."
+    )
+    MSG_MOVIMENTOS_NAO_GERADOS = "Os movimentos da transferencia nao foram gerados."
+
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     company_id = fields.Many2one(
@@ -47,23 +57,23 @@ class TreasuryTransfer(models.Model):
     def _validate_flow(self):
         for record in self:
             if record.amount <= 0:
-                raise ValidationError("Transfer amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_POSITIVO)
             if not (record.source_account_id or record.source_portador_id):
-                raise ValidationError("Transfer source is required.")
+                raise ValidationError(self.MSG_ORIGEM_OBRIGATORIA)
             if not (record.target_account_id or record.target_portador_id):
-                raise ValidationError("Transfer target is required.")
+                raise ValidationError(self.MSG_DESTINO_OBRIGATORIO)
             if (
                 record.source_account_id
                 and record.target_account_id
                 and record.source_account_id == record.target_account_id
             ):
-                raise ValidationError("Source and target accounts must be different.")
+                raise ValidationError(self.MSG_CONTAS_DIFERENTES)
             if (
                 record.source_portador_id
                 and record.target_portador_id
                 and record.source_portador_id == record.target_portador_id
             ):
-                raise ValidationError("Source and target portadores must be different.")
+                raise ValidationError(self.MSG_PORTADORES_DIFERENTES)
 
     def action_confirm(self):
         for record in self:
@@ -111,9 +121,9 @@ class TreasuryTransfer(models.Model):
     def action_cancel(self):
         for record in self:
             if record.state != "confirmed":
-                raise UserError("Only confirmed transfers can be cancelled.")
+                raise UserError(self.MSG_CANCELAMENTO_SOMENTE_CONFIRMADA)
             if not record.out_movement_id or not record.in_movement_id:
-                raise UserError("Transfer movements were not generated.")
+                raise UserError(self.MSG_MOVIMENTOS_NAO_GERADOS)
             record._movement_service.reverse_movement(record.out_movement_id)
             record._movement_service.reverse_movement(record.in_movement_id)
             record.state = "cancelled"

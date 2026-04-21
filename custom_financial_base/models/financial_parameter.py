@@ -7,6 +7,12 @@ class FinancialParameter(models.Model):
     _description = "Financial Parameter"
     _rec_name = "company_id"
 
+    MSG_PARAMETRO_UNICO_EMPRESA = "Ja existe um parametro financeiro para esta empresa."
+    MSG_PORTADOR_PADRAO_EMPRESA = "O portador padrao deve pertencer a mesma empresa."
+    MSG_FORMA_PAGAMENTO_PADRAO_EMPRESA = (
+        "A forma de pagamento padrao deve pertencer a mesma empresa."
+    )
+
     company_id = fields.Many2one(
         "res.company",
         string="Empresa",
@@ -28,7 +34,7 @@ class FinancialParameter(models.Model):
 
     _financial_parameter_company_uniq = models.Constraint(
         "unique(company_id)",
-        "Ja existe um parametro financeiro para esta empresa.",
+        MSG_PARAMETRO_UNICO_EMPRESA,
     )
 
     @api.constrains("default_portador_id", "company_id")
@@ -39,7 +45,7 @@ class FinancialParameter(models.Model):
                 and record.default_portador_id.company_id
                 and record.default_portador_id.company_id != record.company_id
             ):
-                raise ValidationError("O portador padrao deve pertencer a mesma empresa.")
+                raise ValidationError(self.MSG_PORTADOR_PADRAO_EMPRESA)
 
     @api.constrains("default_payment_method_id", "company_id")
     def _check_default_payment_method_company(self):
@@ -49,6 +55,4 @@ class FinancialParameter(models.Model):
                 and record.default_payment_method_id.company_id
                 and record.default_payment_method_id.company_id != record.company_id
             ):
-                raise ValidationError(
-                    "A forma de pagamento padrao deve pertencer a mesma empresa."
-                )
+                raise ValidationError(self.MSG_FORMA_PAGAMENTO_PADRAO_EMPRESA)

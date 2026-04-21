@@ -7,6 +7,14 @@ class ReceivableCollectionAssignment(models.Model):
     _description = "Receivable Collection Assignment"
     _order = "id desc"
 
+    MSG_ATRIBUICAO_UNICA = (
+        "Uma parcela so pode ser atribuida uma vez por roteiro e cobrador."
+    )
+    MSG_PARCELA_TITULO_DIVERGENTE = "A parcela deve pertencer ao titulo selecionado."
+    MSG_CONTATO_TITULO_DIVERGENTE = "O contato deve ser o mesmo do titulo a receber."
+    MSG_ROTEIRO_COBRADOR_EMPRESA = "O roteiro e o cobrador devem pertencer a mesma empresa."
+    MSG_TITULO_ROTEIRO_EMPRESA = "O titulo deve pertencer a mesma empresa do roteiro."
+
     route_id = fields.Many2one(
         "receivable.collection.route",
         required=True,
@@ -63,24 +71,24 @@ class ReceivableCollectionAssignment(models.Model):
 
     _receivable_collection_assignment_installment_agent_route_uniq = models.Constraint(
         "unique(route_id, agent_id, installment_id)",
-        "An installment can only be assigned once per route and agent.",
+        MSG_ATRIBUICAO_UNICA,
     )
 
     @api.constrains("title_id", "installment_id", "partner_id")
     def _check_title_links(self):
         for assignment in self:
             if assignment.installment_id.title_id != assignment.title_id:
-                raise ValidationError("The installment must belong to the selected title.")
+                raise ValidationError(self.MSG_PARCELA_TITULO_DIVERGENTE)
             if assignment.title_id.partner_id != assignment.partner_id:
-                raise ValidationError("The partner must match the receivable title partner.")
+                raise ValidationError(self.MSG_CONTATO_TITULO_DIVERGENTE)
 
     @api.constrains("route_id", "agent_id", "title_id")
     def _check_company_consistency(self):
         for assignment in self:
             if assignment.agent_id.company_id != assignment.route_id.company_id:
-                raise ValidationError("The route and agent must belong to the same company.")
+                raise ValidationError(self.MSG_ROTEIRO_COBRADOR_EMPRESA)
             if assignment.title_id.company_id != assignment.route_id.company_id:
-                raise ValidationError("The title must belong to the same company as the route.")
+                raise ValidationError(self.MSG_TITULO_ROTEIRO_EMPRESA)
 
     @api.depends("settlement_id.line_ids.total_amount")
     def _compute_amount_collected(self):

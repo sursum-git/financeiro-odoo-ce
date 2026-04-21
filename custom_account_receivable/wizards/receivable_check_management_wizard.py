@@ -6,6 +6,13 @@ class ReceivableCheckCompensationWizard(models.TransientModel):
     _name = "receivable.check.compensation.wizard"
     _description = "Receivable Check Compensation Wizard"
 
+    MSG_COMPENSACAO_EXIGE_DESTINO = (
+        "A compensacao do cheque exige conta ou portador de destino."
+    )
+    MSG_CHEQUE_SEM_PARCELA_ABERTA = (
+        "O titulo de cheque nao possui parcela em aberto para compensacao."
+    )
+
     title_id = fields.Many2one(
         "receivable.title",
         required=True,
@@ -35,10 +42,10 @@ class ReceivableCheckCompensationWizard(models.TransientModel):
         self.ensure_one()
         self.title_id._check_open_check_title()
         if not self.portador_id and not self.target_account_id:
-            raise ValidationError("Check compensation requires a target account or portador.")
+            raise ValidationError(self.MSG_COMPENSACAO_EXIGE_DESTINO)
         installment = self.title_id.installment_ids.filtered(lambda inst: inst.amount_open > 0)[:1]
         if not installment:
-            raise ValidationError("The check title has no open installment to compensate.")
+            raise ValidationError(self.MSG_CHEQUE_SEM_PARCELA_ABERTA)
         settlement = self.env["receivable.service"].create_settlement(
             {
                 "name": f"Compensacao Cheque {self.title_id.check_number or self.title_id.name}",
@@ -66,7 +73,7 @@ class ReceivableCheckCompensationWizard(models.TransientModel):
         )
         return {
             "type": "ir.actions.act_window",
-            "name": "Third-Party Check",
+            "name": "Cheque de Terceiros",
             "res_model": "receivable.title",
             "res_id": self.title_id.id,
             "view_mode": "form",
@@ -145,7 +152,7 @@ class ReceivableCheckReturnWizard(models.TransientModel):
             self.title_id.write(values)
         return {
             "type": "ir.actions.act_window",
-            "name": "Third-Party Check",
+            "name": "Cheque de Terceiros",
             "res_model": "receivable.title",
             "res_id": self.title_id.id,
             "view_mode": "form",

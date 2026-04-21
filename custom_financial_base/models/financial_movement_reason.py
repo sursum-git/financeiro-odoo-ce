@@ -6,6 +6,8 @@ class FinancialMovementReason(models.Model):
     _description = "Financial Movement Reason"
     _order = "name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo do motivo deve ser unico por empresa."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(index=True)
     type = fields.Selection(
@@ -33,5 +35,5 @@ class FinancialMovementReason(models.Model):
 
     _financial_movement_reason_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "O codigo do motivo deve ser unico por empresa.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )

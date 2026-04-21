@@ -6,6 +6,10 @@ class FinancialIntegrationEvent(models.Model):
     _description = "Financial Integration Event"
     _order = "id desc"
 
+    MSG_EVENTO_UNICO = (
+        "Ja existe um evento de integracao para esse tipo e registro de origem."
+    )
+
     name = fields.Char(required=True, index=True)
     company_id = fields.Many2one(
         "res.company",
@@ -47,5 +51,5 @@ class FinancialIntegrationEvent(models.Model):
 
     _financial_integration_event_uniq = models.Constraint(
         "unique(event_type, source_model, source_record_id)",
-        "There is already an integration event for this source record and type.",
+        MSG_EVENTO_UNICO,
     )

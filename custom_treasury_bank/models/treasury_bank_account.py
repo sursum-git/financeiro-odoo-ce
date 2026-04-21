@@ -7,6 +7,11 @@ class TreasuryBankAccount(models.Model):
     _description = "Treasury Bank Account"
     _order = "name"
 
+    MSG_CONTA_UNICA_EMPRESA = "Esta conta bancaria ja existe para a empresa."
+    MSG_CONTA_TESOURARIA_EMPRESA = (
+        "A conta de tesouraria vinculada deve pertencer a mesma empresa."
+    )
+
     name = fields.Char(required=True, index=True)
     bank_id = fields.Many2one(
         "treasury.bank",
@@ -42,11 +47,11 @@ class TreasuryBankAccount(models.Model):
 
     _treasury_bank_account_uniq = models.Constraint(
         "unique(bank_id, company_id, agency, account_number, account_digit)",
-        "This bank account already exists for the company.",
+        MSG_CONTA_UNICA_EMPRESA,
     )
 
     @api.constrains("treasury_account_id", "company_id")
     def _check_treasury_account_company(self):
         for record in self.filtered("treasury_account_id"):
             if record.treasury_account_id.company_id != record.company_id:
-                raise ValidationError("The linked treasury account must belong to the same company.")
+                raise ValidationError(self.MSG_CONTA_TESOURARIA_EMPRESA)

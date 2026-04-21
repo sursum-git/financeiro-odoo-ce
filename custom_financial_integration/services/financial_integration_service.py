@@ -6,6 +6,19 @@ class FinancialIntegrationService(models.AbstractModel):
     _name = "financial.integration.service"
     _description = "Financial Integration Service"
 
+    MSG_RECEBER_EXIGE_DESTINO = (
+        "A liquidacao do contas a receber exige conta de destino ou portador para integracao."
+    )
+    MSG_PAGAR_EXIGE_ORIGEM = (
+        "O pagamento do contas a pagar exige conta de origem ou portador para integracao."
+    )
+    MSG_EVENTO_INTEGRACAO_NAO_ENCONTRADO = (
+        "Nao foi encontrado evento de integracao concluido para o registro de origem."
+    )
+    MSG_LOG_ENTRADA_CRIADA = "Lancamento de entrada na tesouraria criado a partir da liquidacao."
+    MSG_LOG_SAIDA_CRIADA = "Lancamento de saida na tesouraria criado a partir do pagamento."
+    MSG_LOG_ESTORNO = "Movimento de tesouraria estornado com id %(movement_id)s."
+
     @property
     def _movement_service(self):
         return self.env["treasury.movement.service"]
@@ -65,9 +78,7 @@ class FinancialIntegrationService(models.AbstractModel):
             return event.treasury_movement_id
         try:
             if not settlement.target_account_id and not settlement.portador_id:
-                raise ValidationError(
-                    "Receivable settlement requires a target account or portador for integration."
-                )
+                raise ValidationError(self.MSG_RECEBER_EXIGE_DESTINO)
             amount = settlement.net_amount_total or sum(settlement.line_ids.mapped("total_amount"))
             movement = self._movement_service.create_movement(
                 {
@@ -86,7 +97,7 @@ class FinancialIntegrationService(models.AbstractModel):
             )
             self._movement_service.post_movement(movement)
             event.write({"treasury_movement_id": movement.id, "state": "done"})
-            self.log_event(event, "info", "Treasury entry created from receivable settlement.")
+            self.log_event(event, "info", self.MSG_LOG_ENTRADA_CRIADA)
             return movement
         except Exception as exc:
             event.write({"state": "failed"})
@@ -107,9 +118,7 @@ class FinancialIntegrationService(models.AbstractModel):
             return event.treasury_movement_id
         try:
             if not payment.source_account_id and not payment.source_portador_id:
-                raise ValidationError(
-                    "Payable payment requires a source account or portador for integration."
-                )
+                raise ValidationError(self.MSG_PAGAR_EXIGE_ORIGEM)
             amount = payment.net_amount_total or sum(payment.line_ids.mapped("total_amount"))
             movement = self._movement_service.create_movement(
                 {
@@ -128,7 +137,7 @@ class FinancialIntegrationService(models.AbstractModel):
             )
             self._movement_service.post_movement(movement)
             event.write({"treasury_movement_id": movement.id, "state": "done"})
-            self.log_event(event, "info", "Treasury exit created from payable payment.")
+            self.log_event(event, "info", self.MSG_LOG_SAIDA_CRIADA)
             return movement
         except Exception as exc:
             event.write({"state": "failed"})
@@ -145,7 +154,7 @@ class FinancialIntegrationService(models.AbstractModel):
             limit=1,
         )
         if not event or not event.treasury_movement_id:
-            raise ValidationError("No successful integration event was found for the source record.")
+            raise ValidationError(self.MSG_EVENTO_INTEGRACAO_NAO_ENCONTRADO)
         reverse_move = self._movement_service.reverse_movement(event.treasury_movement_id)
-        self.log_event(event, "info", f"Treasury movement reversed with id {reverse_move.id}.")
+        self.log_event(event, "info", self.MSG_LOG_ESTORNO % {"movement_id": reverse_move.id})
         return reverse_move

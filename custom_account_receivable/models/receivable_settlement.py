@@ -7,6 +7,16 @@ class ReceivableSettlement(models.Model):
     _description = "Receivable Settlement"
     _order = "date desc, id desc"
 
+    MSG_CHEQUE_EXIGE_LINHAS = (
+        "Liquidacoes com cheque de terceiros exigem ao menos uma linha de cheque."
+    )
+    MSG_CHEQUE_TITULO_UNICO = (
+        "A substituicao por cheque de terceiros so pode ser aplicada a parcelas de um unico titulo."
+    )
+    MSG_CHEQUE_TOTAL_DIVERGENTE = (
+        "A soma dos cheques de terceiros deve ser igual ao valor total substituido."
+    )
+
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     partner_id = fields.Many2one("res.partner", required=True, ondelete="restrict", index=True)
@@ -95,14 +105,10 @@ class ReceivableSettlement(models.Model):
             if settlement.state == "draft":
                 continue
             if not settlement.third_party_check_line_ids:
-                raise ValidationError("Third-party check settlements require at least one check line.")
+                raise ValidationError(self.MSG_CHEQUE_EXIGE_LINHAS)
             title_ids = settlement.line_ids.mapped("title_id")
             if len(title_ids) != 1:
-                raise ValidationError(
-                    "Third-party check substitution can only be applied to installments from a single title."
-                )
+                raise ValidationError(self.MSG_CHEQUE_TITULO_UNICO)
             check_total = sum(settlement.third_party_check_line_ids.mapped("amount"))
             if round(check_total - settlement.gross_amount_total, 2) != 0:
-                raise ValidationError(
-                    "The sum of third-party checks must match the total amount being substituted."
-                )
+                raise ValidationError(self.MSG_CHEQUE_TOTAL_DIVERGENTE)

@@ -11,6 +11,12 @@ class TreasuryBankStatementImport(models.Model):
     _description = "Treasury Bank Statement Import"
     _order = "id desc"
 
+    MSG_IMPORTACAO_SOMENTE_RASCUNHO = "Somente importacoes em rascunho podem ser processadas."
+    MSG_ARQUIVO_OBRIGATORIO = "E obrigatorio informar um arquivo de extrato."
+    MSG_COLUNAS_OBRIGATORIAS = (
+        "O arquivo do extrato deve conter as colunas date, description, amount e type."
+    )
+
     name = fields.Char(required=True, index=True)
     file_name = fields.Char()
     file_data = fields.Binary(required=True, attachment=False)
@@ -46,17 +52,15 @@ class TreasuryBankStatementImport(models.Model):
     def action_import_file(self):
         for record in self:
             if record.state != "draft":
-                raise UserError("Only draft imports can be processed.")
+                raise UserError(self.MSG_IMPORTACAO_SOMENTE_RASCUNHO)
             if not record.file_data:
-                raise ValidationError("A statement file is required.")
+                raise ValidationError(self.MSG_ARQUIVO_OBRIGATORIO)
             decoded = base64.b64decode(record.file_data)
             content = decoded.decode("utf-8-sig")
             reader = csv.DictReader(io.StringIO(content))
             required_columns = {"date", "description", "amount", "type"}
             if not reader.fieldnames or not required_columns.issubset(set(reader.fieldnames)):
-                raise ValidationError(
-                    "The statement file must contain date, description, amount and type columns."
-                )
+                raise ValidationError(self.MSG_COLUNAS_OBRIGATORIAS)
             if record.line_ids:
                 record.line_ids.unlink()
             for row in reader:

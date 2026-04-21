@@ -6,6 +6,8 @@ class TreasuryBank(models.Model):
     _description = "Treasury Bank"
     _order = "name"
 
+    MSG_CODIGO_UNICO = "O codigo do banco deve ser unico."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(required=True, index=True)
     active = fields.Boolean(default=True)
@@ -13,5 +15,5 @@ class TreasuryBank(models.Model):
 
     _treasury_bank_code_uniq = models.Constraint(
         "unique(code)",
-        "The bank code must be unique.",
+        MSG_CODIGO_UNICO,
     )

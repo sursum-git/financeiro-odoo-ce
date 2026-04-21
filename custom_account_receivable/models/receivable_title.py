@@ -7,6 +7,16 @@ class ReceivableTitle(models.Model):
     _description = "Receivable Title"
     _order = "issue_date desc, id desc"
 
+    MSG_TITULO_RENEGOCIACAO_INVALIDA = (
+        "Somente titulos abertos com saldo pendente podem ser renegociados."
+    )
+    MSG_ACAO_APENAS_CHEQUE = (
+        "Esta acao esta disponivel apenas para titulos de cheque de terceiros."
+    )
+    MSG_CHEQUE_ABERTO_OBRIGATORIO = (
+        "Somente cheques de terceiros em aberto podem usar esta acao."
+    )
+
     name = fields.Char(required=True, index=True)
     partner_id = fields.Many2one("res.partner", required=True, ondelete="restrict", index=True)
     company_id = fields.Many2one(
@@ -109,10 +119,10 @@ class ReceivableTitle(models.Model):
     def action_open_renegotiation_wizard(self):
         self.ensure_one()
         if self.state not in {"open", "partial"} or self.amount_open <= 0:
-            raise ValidationError("Only open titles with outstanding balance can be renegotiated.")
+            raise ValidationError(self.MSG_TITULO_RENEGOCIACAO_INVALIDA)
         return {
             "type": "ir.actions.act_window",
-            "name": "Renegotiate Title",
+            "name": "Renegociar Titulo",
             "res_model": "receivable.renegotiation.wizard",
             "view_mode": "form",
             "target": "new",
@@ -126,7 +136,7 @@ class ReceivableTitle(models.Model):
         self._check_open_check_title()
         return {
             "type": "ir.actions.act_window",
-            "name": "Compensate Check",
+            "name": "Compensar Cheque",
             "res_model": "receivable.check.compensation.wizard",
             "view_mode": "form",
             "target": "new",
@@ -140,7 +150,7 @@ class ReceivableTitle(models.Model):
         self._check_open_check_title()
         return {
             "type": "ir.actions.act_window",
-            "name": "Return Check",
+            "name": "Devolver Cheque",
             "res_model": "receivable.check.return.wizard",
             "view_mode": "form",
             "target": "new",
@@ -152,9 +162,9 @@ class ReceivableTitle(models.Model):
     def _check_open_check_title(self):
         self.ensure_one()
         if self.species_kind != "check":
-            raise ValidationError("This action is only available for third-party check titles.")
+            raise ValidationError(self.MSG_ACAO_APENAS_CHEQUE)
         if self.state not in {"open", "partial"}:
-            raise ValidationError("Only open third-party check titles can use this action.")
+            raise ValidationError(self.MSG_CHEQUE_ABERTO_OBRIGATORIO)
 
     def action_cancel_check_title(self):
         for title in self:

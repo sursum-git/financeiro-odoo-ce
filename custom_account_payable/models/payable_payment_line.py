@@ -7,6 +7,11 @@ class PayablePaymentLine(models.Model):
     _description = "Payable Payment Line"
     _order = "id"
 
+    MSG_VALORES_NAO_NEGATIVOS = "Os valores do pagamento nao podem ser negativos."
+    MSG_PAGAMENTO_EXCEDE_SALDO = (
+        "O valor do pagamento nao pode exceder o saldo em aberto da parcela."
+    )
+
     payment_id = fields.Many2one(
         "payable.payment",
         required=True,
@@ -45,6 +50,6 @@ class PayablePaymentLine(models.Model):
     def _check_amounts(self):
         for line in self:
             if line.principal_amount < 0 or line.total_amount < 0:
-                raise ValidationError("Payment amounts cannot be negative.")
+                raise ValidationError(self.MSG_VALORES_NAO_NEGATIVOS)
             if line.payment_id.state == "draft" and line.total_amount > line.installment_id.amount_open:
-                raise ValidationError("Payment amount cannot exceed the installment open amount.")
+                raise ValidationError(self.MSG_PAGAMENTO_EXCEDE_SALDO)

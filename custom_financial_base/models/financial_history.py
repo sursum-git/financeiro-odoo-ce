@@ -6,6 +6,8 @@ class FinancialHistory(models.Model):
     _description = "Financial History"
     _order = "name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo do historico deve ser unico por empresa."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(index=True)
     description = fields.Text()
@@ -19,5 +21,5 @@ class FinancialHistory(models.Model):
 
     _financial_history_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "O codigo do historico deve ser unico por empresa.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )

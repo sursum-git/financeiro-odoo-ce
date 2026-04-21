@@ -6,6 +6,8 @@ class TreasuryAccountModality(models.Model):
     _description = "Treasury Account Modality"
     _order = "account_id, modality_id"
 
+    MSG_MODALIDADE_UNICA = "Esta conta ja possui a modalidade selecionada."
+
     account_id = fields.Many2one(
         "treasury.account",
         required=True,
@@ -28,5 +30,5 @@ class TreasuryAccountModality(models.Model):
 
     _treasury_account_modality_uniq = models.Constraint(
         "unique(account_id, modality_id)",
-        "This account already has the selected modality.",
+        MSG_MODALIDADE_UNICA,
     )

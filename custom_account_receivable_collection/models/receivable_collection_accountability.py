@@ -7,6 +7,16 @@ class ReceivableCollectionAccountability(models.Model):
     _description = "Receivable Collection Accountability"
     _order = "date desc, id desc"
 
+    MSG_DESTINO_OBRIGATORIO = (
+        "A prestacao de contas exige conta de destino ou caixa de destino."
+    )
+    MSG_DESTINO_EXCLUSIVO = "Informe apenas conta de destino ou caixa de destino."
+    MSG_EXIGE_LIQUIDACOES = "A prestacao de contas exige ao menos uma liquidacao rastreada."
+    MSG_VALOR_POSITIVO = "O valor da prestacao de contas deve ser positivo."
+    MSG_LIQUIDACAO_UNICA = "Uma liquidacao nao pode ser prestada mais de uma vez."
+    MSG_LIQUIDACAO_APLICADA = "Somente liquidacoes aplicadas podem ser prestadas."
+    MSG_PORTADOR_COBRADOR = "Todas as liquidacoes devem pertencer ao portador do cobrador."
+
     name = fields.Char(required=True, index=True)
     agent_id = fields.Many2one(
         "receivable.collection.agent",
@@ -72,17 +82,17 @@ class ReceivableCollectionAccountability(models.Model):
     def _check_target(self):
         for accountability in self:
             if not accountability.target_account_id and not accountability.target_cash_box_id:
-                raise ValidationError("Accountability requires a target account or a target cash box.")
+                raise ValidationError(self.MSG_DESTINO_OBRIGATORIO)
             if accountability.target_account_id and accountability.target_cash_box_id:
-                raise ValidationError("Choose either a target account or a target cash box.")
+                raise ValidationError(self.MSG_DESTINO_EXCLUSIVO)
 
     @api.constrains("settlement_ids", "agent_id")
     def _check_settlement_traceability(self):
         for accountability in self:
             if not accountability.settlement_ids:
-                raise ValidationError("Accountability requires at least one tracked settlement.")
+                raise ValidationError(self.MSG_EXIGE_LIQUIDACOES)
             if accountability.amount <= 0:
-                raise ValidationError("Accountability amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_POSITIVO)
             done_accountabilities = self.search(
                 [
                     ("id", "!=", accountability.id),
@@ -91,9 +101,9 @@ class ReceivableCollectionAccountability(models.Model):
                 ]
             )
             if done_accountabilities:
-                raise ValidationError("A settlement cannot be accounted for more than once.")
+                raise ValidationError(self.MSG_LIQUIDACAO_UNICA)
             for settlement in accountability.settlement_ids:
                 if settlement.state != "applied":
-                    raise ValidationError("Only applied settlements can be accounted for.")
+                    raise ValidationError(self.MSG_LIQUIDACAO_APLICADA)
                 if settlement.portador_id != accountability.agent_id.portador_id:
-                    raise ValidationError("All settlements must belong to the agent portador.")
+                    raise ValidationError(self.MSG_PORTADOR_COBRADOR)

@@ -7,6 +7,9 @@ class TreasuryReconciliationLine(models.Model):
     _description = "Treasury Reconciliation Line"
     _order = "id"
 
+    MSG_LINHA_UNICA = "Uma linha de extrato so pode estar vinculada a uma linha de conciliacao."
+    MSG_LINHA_JA_CONCILIADA = "Esta linha de extrato ja esta conciliada."
+
     reconciliation_id = fields.Many2one(
         "treasury.reconciliation",
         required=True,
@@ -50,7 +53,7 @@ class TreasuryReconciliationLine(models.Model):
 
     _treasury_reconciliation_statement_line_uniq = models.Constraint(
         "unique(statement_line_id)",
-        "A statement line can only be linked to one reconciliation line.",
+        MSG_LINHA_UNICA,
     )
 
     @api.depends("statement_line_id.amount", "movement_id.signed_amount")
@@ -63,4 +66,4 @@ class TreasuryReconciliationLine(models.Model):
     def _check_statement_line_not_already_reconciled(self):
         for line in self:
             if line.statement_line_id.is_reconciled and line.status != "matched":
-                raise ValidationError("This statement line is already reconciled.")
+                raise ValidationError(self.MSG_LINHA_JA_CONCILIADA)

@@ -7,6 +7,11 @@ class FinancialWithholdingCode(models.Model):
     _description = "Financial Withholding Code"
     _order = "code, name"
 
+    MSG_CODIGO_UNICO_EMPRESA = "O codigo de retencao deve ser unico por empresa."
+    MSG_CODIGO_OBRIGATORIO = "O codigo de retencao nao pode ficar vazio."
+    MSG_VALOR_MINIMO_RETENCAO_NEGATIVO = "O valor minimo de retencao nao pode ser negativo."
+    MSG_VALOR_MINIMO_PAGAMENTO_NEGATIVO = "O valor minimo de pagamento nao pode ser negativo."
+
     name = fields.Char(required=True, index=True)
     code = fields.Char(required=True, index=True)
     description = fields.Text()
@@ -41,28 +46,34 @@ class FinancialWithholdingCode(models.Model):
 
     _financial_withholding_code_company_uniq = models.Constraint(
         "unique(code, company_id)",
-        "The withholding code must be unique per company.",
+        MSG_CODIGO_UNICO_EMPRESA,
     )
 
     @api.constrains("code")
     def _check_code(self):
         for record in self:
             if not record.code.strip():
-                raise ValidationError("The withholding code cannot be empty.")
+                raise ValidationError(self.MSG_CODIGO_OBRIGATORIO)
 
     @api.constrains("minimum_retention_amount", "minimum_payment_amount")
     def _check_minimum_amounts(self):
         for record in self:
             if record.minimum_retention_amount < 0:
-                raise ValidationError("The minimum retention amount cannot be negative.")
+                raise ValidationError(self.MSG_VALOR_MINIMO_RETENCAO_NEGATIVO)
             if record.minimum_payment_amount < 0:
-                raise ValidationError("The minimum payment amount cannot be negative.")
+                raise ValidationError(self.MSG_VALOR_MINIMO_PAGAMENTO_NEGATIVO)
 
 
 class ResPartnerWithholdingLine(models.Model):
     _name = "res.partner.withholding.line"
     _description = "Partner Withholding Line"
     _order = "company_id, withholding_code_id, id"
+
+    MSG_LINHA_UNICA_CONTATO_EMPRESA = (
+        "Um contato so pode ter uma linha por codigo de retencao e empresa."
+    )
+    MSG_PERCENTUAL_RETENCAO_INVALIDO = "O percentual de retencao deve estar entre 0 e 100."
+    MSG_CODIGO_EMPRESA_DIFERENTE = "O codigo de retencao deve pertencer a mesma empresa."
 
     partner_id = fields.Many2one(
         "res.partner",
@@ -93,17 +104,17 @@ class ResPartnerWithholdingLine(models.Model):
 
     _res_partner_withholding_line_uniq = models.Constraint(
         "unique(partner_id, company_id, withholding_code_id)",
-        "A contact can only have one line per withholding code and company.",
+        MSG_LINHA_UNICA_CONTATO_EMPRESA,
     )
 
     @api.constrains("retention_percent")
     def _check_retention_percent(self):
         for line in self:
             if line.retention_percent < 0 or line.retention_percent > 100:
-                raise ValidationError("Retention percent must be between 0 and 100.")
+                raise ValidationError(self.MSG_PERCENTUAL_RETENCAO_INVALIDO)
 
     @api.constrains("company_id", "withholding_code_id")
     def _check_code_company(self):
         for line in self:
             if line.withholding_code_id.company_id != line.company_id:
-                raise ValidationError("The withholding code must belong to the same company.")
+                raise ValidationError(self.MSG_CODIGO_EMPRESA_DIFERENTE)

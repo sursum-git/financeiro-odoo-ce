@@ -6,11 +6,18 @@ class ReceivableCollectionService(models.AbstractModel):
     _name = "receivable.collection.service"
     _description = "Receivable Collection Service"
 
+    MSG_PARCELA_EM_ABERTO = "Somente parcelas abertas ou parciais podem ser atribuidas."
+    MSG_ITEM_ATRIBUIDO = "Somente itens atribuidos podem registrar cobranca em campo."
+    MSG_COBRADOR_EXIGE_PORTADOR = "O cobrador exige um portador vinculado."
+    MSG_VALOR_PRINCIPAL_POSITIVO = "O valor principal recebido deve ser positivo."
+    MSG_EXIGE_LIQUIDACOES = "A prestacao de contas exige liquidacoes rastreadas."
+    MSG_CAIXA_DESTINO_EXIGE_PORTADOR = "O caixa de destino exige um portador vinculado."
+
     def assign_titles_to_agent(self, route, agent, installments, notes=None):
         assignments = self.env["receivable.collection.assignment"]
         for installment in installments:
             if installment.state not in {"open", "partial"}:
-                raise ValidationError("Only open or partial installments can be assigned.")
+                raise ValidationError(self.MSG_PARCELA_EM_ABERTO)
             assignments |= self.env["receivable.collection.assignment"].create(
                 {
                     "route_id": route.id,
@@ -38,13 +45,13 @@ class ReceivableCollectionService(models.AbstractModel):
     ):
         assignment.ensure_one()
         if assignment.state != "assigned":
-            raise ValidationError("Only assigned items can register field collection.")
+            raise ValidationError(self.MSG_ITEM_ATRIBUIDO)
         if not assignment.agent_id.portador_id:
-            raise ValidationError("The collection agent requires a portador.")
+            raise ValidationError(self.MSG_COBRADOR_EXIGE_PORTADOR)
         installment = assignment.installment_id
         principal_value = principal_amount if principal_amount is not None else installment.amount_open
         if principal_value <= 0:
-            raise ValidationError("Collected principal amount must be positive.")
+            raise ValidationError(self.MSG_VALOR_PRINCIPAL_POSITIVO)
         settlement_date = date or fields.Date.context_today(self)
         settlement_name = f"Cobranca {assignment.agent_id.name} - {assignment.title_id.name}"
         settlement = self.env["receivable.service"].create_settlement(
@@ -91,9 +98,9 @@ class ReceivableCollectionService(models.AbstractModel):
         agent.ensure_one()
         settlements = settlement_ids if hasattr(settlement_ids, "ids") else self.env["receivable.settlement"].browse(settlement_ids)
         if not settlements:
-            raise ValidationError("Accountability requires tracked settlements.")
+            raise ValidationError(self.MSG_EXIGE_LIQUIDACOES)
         if target_cash_box and not target_cash_box.portador_id:
-            raise ValidationError("The target cash box requires a portador.")
+            raise ValidationError(self.MSG_CAIXA_DESTINO_EXIGE_PORTADOR)
         accountability = self.env["receivable.collection.accountability"].create(
             {
                 "name": name or f"Prestacao {agent.name} - {date or fields.Date.context_today(self)}",

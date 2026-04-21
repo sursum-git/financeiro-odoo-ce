@@ -7,6 +7,8 @@ class PayableInstallment(models.Model):
     _description = "Payable Installment"
     _order = "due_date, sequence, id"
 
+    MSG_VALOR_PARCELA_POSITIVO = "O valor da parcela deve ser positivo."
+
     title_id = fields.Many2one(
         "payable.title",
         required=True,
@@ -66,4 +68,4 @@ class PayableInstallment(models.Model):
     def _check_positive_amount(self):
         for installment in self:
             if installment.amount <= 0:
-                raise ValidationError("Installment amount must be positive.")
+                raise ValidationError(self.MSG_VALOR_PARCELA_POSITIVO)
