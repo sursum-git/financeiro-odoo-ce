@@ -16,6 +16,17 @@ class TestFinancialReports(TransactionCase):
         self.account = self.env["treasury.account"].create(
             {"name": "Conta Relatorio", "code": "CR001", "company_id": self.company.id}
         )
+        self.currency_xrp = self.env["res.currency"].create(
+            {"name": "XRP", "symbol": "XP$", "rounding": 0.01}
+        )
+        self.env["res.currency.rate"].create(
+            {
+                "name": "2026-04-21",
+                "currency_id": self.currency_xrp.id,
+                "company_id": self.company.id,
+                "rate": 0.2,
+            }
+        )
         self.env["treasury.movement.service"].post_movement(
             self.env["treasury.movement.service"].create_movement(
                 {
@@ -24,6 +35,7 @@ class TestFinancialReports(TransactionCase):
                     "company_id": self.company.id,
                     "type": "entrada",
                     "amount": 150.0,
+                    "currency_id": self.company.currency_id.id,
                     "account_id": self.account.id,
                     "portador_id": self.portador.id,
                     "payment_method_id": self.payment_method.id,
@@ -69,6 +81,7 @@ class TestFinancialReports(TransactionCase):
                 "account_id": self.account.id,
                 "portador_id": self.portador.id,
                 "partner_id": self.partner_customer.id,
+                "currency_id": self.company.currency_id.id,
                 "date_from": "2026-04-01",
                 "date_to": "2026-04-30",
                 "reference_date": "2026-04-21",
@@ -79,6 +92,7 @@ class TestFinancialReports(TransactionCase):
         action = self.helper.action_open_treasury_statement_by_account()
         self.assertEqual(action["res_model"], "treasury.movement")
         self.assertIn(("account_id", "=", self.account.id), action["domain"])
+        self.assertIn(("currency_id", "=", self.company.currency_id.id), action["domain"])
 
     def test_open_receivable_position(self):
         action = self.helper.action_open_receivable_open_position()
@@ -105,3 +119,11 @@ class TestFinancialReports(TransactionCase):
         self.assertEqual((self.receivable_title.amount_open, self.receivable_title.state), receivable_before)
         self.assertEqual((self.payable_title.amount_open, self.payable_title.state), payable_before)
         self.assertEqual(self.schedule.state, schedule_before)
+
+    def test_open_balance_by_account_groups_by_currency(self):
+        action = self.helper.action_open_balance_by_account()
+        self.assertEqual(action["res_model"], "treasury.movement")
+        self.assertEqual(
+            action["context"]["group_by"],
+            ["account_id", "currency_id"],
+        )

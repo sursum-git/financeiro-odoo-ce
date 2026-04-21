@@ -15,6 +15,7 @@ class TreasuryReconciliationService(models.AbstractModel):
     )
     MSG_VINCULO_AUTOMATICO = "Vinculado pelo servico de conciliacao."
     MSG_AJUSTE_CRIADO = "Ajuste criado durante a conciliacao."
+    MSG_MOEDA_DIVERGENTE = "Extrato e movimento precisam usar a mesma moeda na conciliacao."
 
     @property
     def _movement_service(self):
@@ -36,6 +37,7 @@ class TreasuryReconciliationService(models.AbstractModel):
                     ("state", "=", "posted"),
                     ("is_reconciled", "=", False),
                     ("account_id", "=", reconciliation.bank_account_id.treasury_account_id.id),
+                    ("currency_id", "=", statement_line.currency_id.id),
                     ("date", "=", statement_line.date),
                 ],
                 limit=1,
@@ -49,6 +51,8 @@ class TreasuryReconciliationService(models.AbstractModel):
             raise ValidationError(self.MSG_LINHA_JA_CONCILIADA)
         if movement.is_reconciled:
             raise ValidationError(self.MSG_MOVIMENTO_JA_CONCILIADO)
+        if statement_line.currency_id != movement.currency_id:
+            raise ValidationError(self.MSG_MOEDA_DIVERGENTE)
         line_vals = {
             "statement_line_id": statement_line.id,
             "movement_id": movement.id,
@@ -68,6 +72,8 @@ class TreasuryReconciliationService(models.AbstractModel):
         reconciliation.ensure_one()
         if statement_line.is_reconciled:
             raise ValidationError(self.MSG_LINHA_JA_CONCILIADA)
+        if movement and statement_line.currency_id != movement.currency_id:
+            raise ValidationError(self.MSG_MOEDA_DIVERGENTE)
         difference = statement_line.amount - (abs(movement.signed_amount) if movement else 0.0)
         if difference <= 0:
             raise ValidationError(self.MSG_DIFERENCA_POSITIVA)
@@ -91,6 +97,7 @@ class TreasuryReconciliationService(models.AbstractModel):
                 "company_id": reconciliation.company_id.id,
                 "type": "ajuste",
                 "amount": difference,
+                "currency_id": statement_line.currency_id.id,
                 "account_id": reconciliation.bank_account_id.treasury_account_id.id,
                 "reason_id": reason.id,
                 "origin_module": "custom_treasury_reconciliation",

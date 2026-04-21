@@ -32,6 +32,13 @@ class FinancialPortador(models.Model):
         default=lambda self: self.env.company,
         index=True,
     )
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Moeda",
+        required=True,
+        default=lambda self: self.env.company.currency_id,
+        ondelete="restrict",
+    )
 
     _financial_portador_code_company_uniq = models.Constraint(
         "unique(code, company_id)",

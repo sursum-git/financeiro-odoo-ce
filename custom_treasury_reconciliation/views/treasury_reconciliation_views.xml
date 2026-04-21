@@ -48,6 +48,8 @@
             <list>
                 <field name="statement_line_id"/>
                 <field name="movement_id"/>
+                <field name="currency_id"/>
+                <field name="movement_currency_id"/>
                 <field name="status"/>
                 <field name="difference_amount"/>
                 <field name="adjustment_movement_id"/>

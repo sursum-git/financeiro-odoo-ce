@@ -49,6 +49,26 @@ if __name__.startswith("odoo.addons."):
                     "supplier_contact_id": cls.withholding_supplier.id,
                 }
             )
+            cls.currency_xfi = cls.env["res.currency"].create(
+                {"name": "XFI", "symbol": "XF$", "rounding": 0.01}
+            )
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": "2026-05-10",
+                    "currency_id": cls.currency_xfi.id,
+                    "company_id": cls.env.company.id,
+                    "rate": 0.2,
+                }
+            )
+            cls.portador_xfi = cls.env["financial.portador"].create(
+                {
+                    "name": "Portador Integracao XFI",
+                    "code": "PINTXFI",
+                    "type": "interno",
+                    "company_id": cls.env.company.id,
+                    "currency_id": cls.currency_xfi.id,
+                }
+            )
 
         def _create_receivable_settlement(self, with_target=True):
             service = self.env["receivable.service"]
@@ -164,3 +184,43 @@ if __name__.startswith("odoo.addons."):
             movement = event.treasury_movement_id
             self.assertEqual(movement.origin_model, "payable.payment")
             self.assertEqual(movement.origin_record_id, payment.id)
+
+        def test_receivable_integration_preserves_transaction_currency(self):
+            service = self.env["receivable.service"]
+            title = service.open_title(
+                {
+                    "name": "Titulo Int Receber XFI",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "amount_total": 100.0,
+                    "currency_id": self.currency_xfi.id,
+                }
+            )
+            installments = service.generate_installments(
+                title,
+                [{"due_date": "2026-05-10", "amount": 100.0}],
+            )
+            settlement = service.create_settlement(
+                {
+                    "name": "Liquidacao Integrada XFI",
+                    "date": "2026-05-10",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "payment_method_id": self.payment_method.id,
+                    "portador_id": self.portador_xfi.id,
+                    "target_account_id": self.account.id,
+                },
+                [{"installment_id": installments[0].id, "principal_amount": 100.0}],
+            )
+            service.apply_settlement(settlement)
+            event = self.env["financial.integration.event"].search(
+                [("source_model", "=", "receivable.settlement"), ("source_record_id", "=", settlement.id)],
+                limit=1,
+            )
+            movement = event.treasury_movement_id
+            self.assertEqual(movement.currency_id, self.currency_xfi)
+            self.assertEqual(movement.amount, settlement.net_amount_total)
+            self.assertEqual(
+                movement.amount_company_currency,
+                settlement.net_amount_company_currency,
+            )

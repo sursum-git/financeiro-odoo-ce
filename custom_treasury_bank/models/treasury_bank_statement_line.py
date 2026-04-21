@@ -20,9 +20,21 @@ class TreasuryBankStatementLine(models.Model):
     document_number = fields.Char(index=True)
     amount = fields.Monetary(required=True, currency_field="currency_id")
     currency_id = fields.Many2one(
+        "res.currency",
+        required=True,
+        string="Moeda da Linha",
+        ondelete="restrict",
+    )
+    company_currency_id = fields.Many2one(
         related="import_id.company_id.currency_id",
+        string="Moeda da Empresa",
         store=True,
         readonly=True,
+    )
+    amount_company_currency = fields.Monetary(
+        compute="_compute_company_amount",
+        store=True,
+        currency_field="company_currency_id",
     )
     type = fields.Selection(
         [
@@ -38,6 +50,22 @@ class TreasuryBankStatementLine(models.Model):
         ondelete="restrict",
         index=True,
     )
+
+    @api.depends("amount", "currency_id", "company_currency_id", "date", "import_id.company_id")
+    def _compute_company_amount(self):
+        for line in self:
+            currency = line.currency_id or line.company_currency_id
+            company_currency = line.company_currency_id
+            if not currency or not company_currency:
+                line.amount_company_currency = line.amount
+                continue
+            line.amount_company_currency = currency._convert(
+                line.amount,
+                company_currency,
+                line.import_id.company_id,
+                line.date,
+            )
+
     @api.constrains("amount")
     def _check_positive_amount(self):
         for line in self:

@@ -13,6 +13,7 @@ if __name__.startswith("odoo.addons."):
             )
             self.assertEqual(portador.type, "caixa")
             self.assertTrue(portador.controla_saldo)
+            self.assertEqual(portador.currency_id, self.env.company.currency_id)
 
         def test_create_payment_method_pix(self):
             payment_method = self.env["financial.payment.method"].create(

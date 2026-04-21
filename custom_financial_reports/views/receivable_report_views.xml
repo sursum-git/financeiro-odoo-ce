@@ -10,6 +10,7 @@
                         <field name="company_id"/>
                         <field name="partner_id"/>
                         <field name="reference_date"/>
+                        <field name="currency_id"/>
                     </group>
                     <group>
                         <field name="date_from"/>

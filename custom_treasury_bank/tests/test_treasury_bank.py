@@ -23,6 +23,17 @@ if __name__.startswith("odoo.addons."):
                     "company_id": cls.env.company.id,
                 }
             )
+            cls.currency_xbk = cls.env["res.currency"].create(
+                {"name": "XBK", "symbol": "XB$", "rounding": 0.01}
+            )
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": "2026-04-20",
+                    "currency_id": cls.currency_xbk.id,
+                    "company_id": cls.env.company.id,
+                    "rate": 0.2,
+                }
+            )
 
         def test_create_bank(self):
             bank = self.env["treasury.bank"].create(
@@ -106,6 +117,36 @@ if __name__.startswith("odoo.addons."):
             statement_import.action_import_file()
             self.assertEqual(statement_import.state, "imported")
             self.assertEqual(len(statement_import.line_ids), 1)
+
+        def test_statement_import_uses_bank_account_currency(self):
+            bank = self.env["treasury.bank"].create(
+                {
+                    "name": "Banco FX",
+                    "code": "777",
+                }
+            )
+            bank_account = self.env["treasury.bank.account"].create(
+                {
+                    "name": "Conta FX",
+                    "bank_id": bank.id,
+                    "account_number": "77777",
+                    "company_id": self.env.company.id,
+                    "currency_id": self.currency_xbk.id,
+                }
+            )
+            file_content = "date,description,document_number,amount,type\n2026-04-20,Credito FX,DOCX,100.00,credit\n"
+            statement_import = self.env["treasury.bank.statement.import"].create(
+                {
+                    "name": "Importacao FX",
+                    "file_name": "statement_fx.csv",
+                    "file_data": base64.b64encode(file_content.encode("utf-8")),
+                    "company_id": self.env.company.id,
+                    "bank_account_id": bank_account.id,
+                }
+            )
+            statement_import.action_import_file()
+            self.assertEqual(statement_import.currency_id, self.currency_xbk)
+            self.assertEqual(statement_import.line_ids[0].currency_id, self.currency_xbk)
 
         def test_imported_lines_do_not_change_balance_automatically(self):
             bank = self.env["treasury.bank"].create(

@@ -10,6 +10,7 @@
                 <field name="agency"/>
                 <field name="account_number"/>
                 <field name="treasury_account_id"/>
+                <field name="currency_id"/>
                 <field name="company_id"/>
                 <field name="active"/>
             </list>
@@ -27,6 +28,7 @@
                         <field name="bank_id"/>
                         <field name="treasury_account_id"/>
                         <field name="company_id"/>
+                        <field name="currency_id"/>
                         <field name="active"/>
                     </group>
                     <group>

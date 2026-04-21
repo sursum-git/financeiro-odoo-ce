@@ -15,6 +15,10 @@ class PayableService(models.AbstractModel):
     MSG_RETENCAO_EXCEDE_BRUTO = (
         "A retencao mensal devida excede o valor bruto do pagamento atual."
     )
+    MSG_PAGAMENTO_MOEDA_UNICA = "O pagamento deve conter apenas parcelas na mesma moeda."
+    MSG_PAGAMENTO_MOEDA_DIVERGENTE = (
+        "A moeda do pagamento deve ser igual a moeda das parcelas selecionadas."
+    )
 
     def _get_month_limits(self, target_date):
         target_date = fields.Date.to_date(target_date)
@@ -35,6 +39,7 @@ class PayableService(models.AbstractModel):
             [
                 ("partner_id", "=", payment.partner_id.id),
                 ("company_id", "=", payment.company_id.id),
+                ("currency_id", "=", payment.currency_id.id),
                 ("state", "=", "applied"),
                 ("date", ">=", month_start),
                 ("date", "<=", month_end),
@@ -93,6 +98,11 @@ class PayableService(models.AbstractModel):
         return schedule
 
     def create_payment(self, vals, line_vals_list):
+        currency = self._extract_currency_from_installments(
+            [line_vals["installment_id"] for line_vals in line_vals_list]
+        )
+        if currency and not vals.get("currency_id"):
+            vals = dict(vals, currency_id=currency.id)
         payment = self.env["payable.payment"].create(vals)
         for line_vals in line_vals_list:
             self.env["payable.payment.line"].create(
@@ -107,10 +117,25 @@ class PayableService(models.AbstractModel):
             )
         return payment
 
+    def _extract_currency_from_installments(self, installment_ids):
+        installments = self.env["payable.installment"].browse(list(installment_ids))
+        currencies = installments.mapped("currency_id")
+        if len(currencies) > 1:
+            raise ValidationError(self.MSG_PAGAMENTO_MOEDA_UNICA)
+        return currencies[:1]
+
+    def _validate_payment_currency(self, payment):
+        line_currencies = payment.line_ids.mapped("currency_id")
+        if len(line_currencies) > 1:
+            raise ValidationError(self.MSG_PAGAMENTO_MOEDA_UNICA)
+        if line_currencies and payment.currency_id != line_currencies[0]:
+            raise ValidationError(self.MSG_PAGAMENTO_MOEDA_DIVERGENTE)
+
     def apply_payment(self, payment):
         payment.ensure_one()
         if payment.state != "draft":
             raise ValidationError(self.MSG_PAGAMENTO_RASCUNHO)
+        self._validate_payment_currency(payment)
         payment.withholding_line_ids.unlink()
         for line in payment.line_ids:
             if line.total_amount > line.installment_id.amount_open:

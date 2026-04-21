@@ -13,6 +13,7 @@ class TreasuryCashSession(models.Model):
     MSG_FECHAMENTO_SOMENTE_ABERTA = "Somente sessoes abertas podem ser fechadas."
     MSG_MOTIVO_DIFERENCA_OBRIGATORIO = "E obrigatorio informar um motivo para diferenca de caixa."
     MSG_SESSAO_FECHADA_SEM_CANCELAMENTO = "Sessoes fechadas nao podem ser canceladas."
+    MSG_MOEDA_CAIXA_DIVERGENTE = "A moeda da sessao deve ser igual a moeda do portador do caixa."
 
     name = fields.Char(required=True, index=True)
     cash_box_id = fields.Many2one(
@@ -62,8 +63,10 @@ class TreasuryCashSession(models.Model):
     )
     currency_id = fields.Many2one(
         "res.currency",
+        string="Moeda da Sessao",
         required=True,
         default=lambda self: self.env.company.currency_id,
+        ondelete="restrict",
     )
     line_ids = fields.One2many(
         "treasury.cash.session.line",
@@ -102,6 +105,12 @@ class TreasuryCashSession(models.Model):
         for session in self:
             if session.cash_box_id.company_id != session.company_id:
                 raise ValidationError(self.MSG_CAIXA_EMPRESA_DIFERENTE)
+
+    @api.constrains("cash_box_id", "currency_id")
+    def _check_currency_consistency(self):
+        for session in self.filtered(lambda rec: rec.cash_box_id.portador_id):
+            if session.cash_box_id.portador_id.currency_id != session.currency_id:
+                raise ValidationError(self.MSG_MOEDA_CAIXA_DIVERGENTE)
 
     def action_open(self):
         for session in self:

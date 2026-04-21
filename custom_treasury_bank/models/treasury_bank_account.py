@@ -33,6 +33,13 @@ class TreasuryBankAccount(models.Model):
         default=lambda self: self.env.company,
         index=True,
     )
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Moeda da Conta Bancaria",
+        required=True,
+        default=lambda self: self.env.company.currency_id,
+        ondelete="restrict",
+    )
     active = fields.Boolean(default=True)
     modality_link_ids = fields.One2many(
         "treasury.bank.account.modality",

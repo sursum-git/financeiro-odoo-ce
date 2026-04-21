@@ -20,6 +20,7 @@ class FinancialReportHelper(models.TransientModel):
     partner_id = fields.Many2one("res.partner", ondelete="restrict")
     agent_id = fields.Many2one("receivable.collection.agent", ondelete="restrict")
     route_id = fields.Many2one("receivable.collection.route", ondelete="restrict")
+    currency_id = fields.Many2one("res.currency", ondelete="restrict")
 
     def _append_date_domain(self, domain, field_name="date"):
         self.ensure_one()
@@ -46,12 +47,16 @@ class FinancialReportHelper(models.TransientModel):
     def action_open_treasury_statement_by_account(self):
         self.ensure_one()
         domain = [("company_id", "=", self.company_id.id), ("account_id", "=", self.account_id.id)]
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         domain = self._append_date_domain(domain)
         return self._readonly_action("Extrato por Conta", "treasury.movement", domain)
 
     def action_open_treasury_statement_by_portador(self):
         self.ensure_one()
         domain = [("company_id", "=", self.company_id.id), ("portador_id", "=", self.portador_id.id)]
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         domain = self._append_date_domain(domain)
         return self._readonly_action("Extrato por Portador", "treasury.movement", domain)
 
@@ -60,13 +65,18 @@ class FinancialReportHelper(models.TransientModel):
         domain = [("company_id", "=", self.company_id.id), ("state", "=", "posted")]
         if self.account_id:
             domain.append(("account_id", "=", self.account_id.id))
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         domain = self._append_date_domain(domain)
         return self._readonly_action(
             "Saldo por Conta",
             "treasury.movement",
             domain,
             view_mode="list,pivot,graph,form",
-            context={"group_by": ["account_id"], "pivot_measures": ["signed_amount"]},
+            context={
+                "group_by": ["account_id", "currency_id"],
+                "pivot_measures": ["signed_amount", "signed_amount_company_currency"],
+            },
         )
 
     def action_open_balance_by_portador(self):
@@ -74,25 +84,35 @@ class FinancialReportHelper(models.TransientModel):
         domain = [("company_id", "=", self.company_id.id), ("state", "=", "posted")]
         if self.portador_id:
             domain.append(("portador_id", "=", self.portador_id.id))
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         domain = self._append_date_domain(domain)
         return self._readonly_action(
             "Saldo por Portador",
             "treasury.movement",
             domain,
             view_mode="list,pivot,graph,form",
-            context={"group_by": ["portador_id"], "pivot_measures": ["signed_amount"]},
+            context={
+                "group_by": ["portador_id", "currency_id"],
+                "pivot_measures": ["signed_amount", "signed_amount_company_currency"],
+            },
         )
 
     def action_open_cash_flow_realized(self):
         self.ensure_one()
         domain = [("company_id", "=", self.company_id.id), ("state", "=", "posted")]
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         domain = self._append_date_domain(domain)
         return self._readonly_action(
             "Fluxo de Caixa Realizado",
             "treasury.movement",
             domain,
             view_mode="list,pivot,graph,form",
-            context={"group_by": ["date", "type"], "pivot_measures": ["signed_amount"]},
+            context={
+                "group_by": ["date", "type", "currency_id"],
+                "pivot_measures": ["signed_amount", "signed_amount_company_currency"],
+            },
         )
 
     def action_open_receivable_open_position(self):
@@ -100,12 +120,14 @@ class FinancialReportHelper(models.TransientModel):
         domain = [("company_id", "=", self.company_id.id), ("state", "in", ["open", "partial"])]
         if self.partner_id:
             domain.append(("partner_id", "=", self.partner_id.id))
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         return self._readonly_action(
             "Posicao em Aberto a Receber",
             "receivable.title",
             domain,
             view_mode="list,pivot,graph,form",
-            context={"group_by": ["partner_id"], "pivot_measures": ["amount_open"]},
+            context={"group_by": ["partner_id", "currency_id"], "pivot_measures": ["amount_open"]},
         )
 
     def action_open_receivable_aging(self):
@@ -117,12 +139,14 @@ class FinancialReportHelper(models.TransientModel):
         ]
         if self.partner_id:
             domain.append(("title_id.partner_id", "=", self.partner_id.id))
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         return self._readonly_action(
             "Aging de Vencidos",
             "receivable.installment",
             domain,
             view_mode="list,pivot,graph,form",
-            context={"group_by": ["title_id", "due_date"], "pivot_measures": ["amount_open"]},
+            context={"group_by": ["title_id", "due_date", "currency_id"], "pivot_measures": ["amount_open"]},
         )
 
     def action_open_receivable_settlement_history(self):
@@ -130,6 +154,8 @@ class FinancialReportHelper(models.TransientModel):
         domain = [("company_id", "=", self.company_id.id)]
         if self.partner_id:
             domain.append(("partner_id", "=", self.partner_id.id))
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         domain = self._append_date_domain(domain)
         return self._readonly_action("Historico de Liquidacoes", "receivable.settlement", domain)
 
@@ -138,12 +164,14 @@ class FinancialReportHelper(models.TransientModel):
         domain = [("company_id", "=", self.company_id.id), ("state", "in", ["open", "partial"])]
         if self.partner_id:
             domain.append(("partner_id", "=", self.partner_id.id))
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         return self._readonly_action(
             "Posicao em Aberto a Pagar",
             "payable.title",
             domain,
             view_mode="list,pivot,graph,form",
-            context={"group_by": ["partner_id"], "pivot_measures": ["amount_open"]},
+            context={"group_by": ["partner_id", "currency_id"], "pivot_measures": ["amount_open"]},
         )
 
     def action_open_payment_schedule(self):
@@ -159,17 +187,23 @@ class FinancialReportHelper(models.TransientModel):
         domain = [("company_id", "=", self.company_id.id)]
         if self.partner_id:
             domain.append(("partner_id", "=", self.partner_id.id))
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         domain = self._append_date_domain(domain)
         return self._readonly_action("Historico de Pagamentos", "payable.payment", domain)
 
     def action_open_reconciled_items(self):
         self.ensure_one()
         domain = [("reconciliation_id.company_id", "=", self.company_id.id), ("status", "in", ["matched", "adjusted"])]
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         return self._readonly_action("Itens Conciliados", "treasury.reconciliation.line", domain)
 
     def action_open_divergent_items(self):
         self.ensure_one()
         domain = [("reconciliation_id.company_id", "=", self.company_id.id), ("status", "=", "divergent")]
+        if self.currency_id:
+            domain.append(("currency_id", "=", self.currency_id.id))
         return self._readonly_action("Itens Divergentes", "treasury.reconciliation.line", domain)
 
     def action_open_collection_accountability(self):

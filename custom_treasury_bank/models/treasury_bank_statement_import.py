@@ -32,6 +32,12 @@ class TreasuryBankStatementImport(models.Model):
         ondelete="restrict",
         index=True,
     )
+    currency_id = fields.Many2one(
+        related="bank_account_id.currency_id",
+        string="Moeda do Extrato",
+        store=True,
+        readonly=True,
+    )
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -71,6 +77,7 @@ class TreasuryBankStatementImport(models.Model):
                         "description": row.get("description"),
                         "document_number": row.get("document_number"),
                         "amount": float(row["amount"]),
+                        "currency_id": record.currency_id.id,
                         "type": row["type"],
                     }
                 )

@@ -44,6 +44,43 @@ if __name__.startswith("odoo.addons."):
                     "portador_id": cls.portador.id,
                 }
             )
+            cls.currency_xcx = cls.env["res.currency"].create(
+                {"name": "XCX", "symbol": "XC$", "rounding": 0.01}
+            )
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": "2026-04-21",
+                    "currency_id": cls.currency_xcx.id,
+                    "company_id": cls.env.company.id,
+                    "rate": 0.2,
+                }
+            )
+            cls.portador_fx = cls.env["financial.portador"].create(
+                {
+                    "name": "Caixa FX",
+                    "code": "CX_FX",
+                    "type": "caixa",
+                    "company_id": cls.env.company.id,
+                    "currency_id": cls.currency_xcx.id,
+                }
+            )
+            cls.target_portador_fx = cls.env["financial.portador"].create(
+                {
+                    "name": "Tesouraria FX",
+                    "code": "TES_FX",
+                    "type": "interno",
+                    "company_id": cls.env.company.id,
+                    "currency_id": cls.currency_xcx.id,
+                }
+            )
+            cls.cash_box_fx = cls.env["treasury.cash.box"].create(
+                {
+                    "name": "Caixa Loja FX",
+                    "code": "CXFX",
+                    "company_id": cls.env.company.id,
+                    "portador_id": cls.portador_fx.id,
+                }
+            )
 
         def test_create_cash_box(self):
             self.assertEqual(self.cash_box.portador_id, self.portador)
@@ -56,6 +93,14 @@ if __name__.startswith("odoo.addons."):
             )
             self.assertEqual(session.state, "open")
             self.assertEqual(session.opening_amount, 100.0)
+
+        def test_open_session_uses_cash_box_currency(self):
+            session = self.env["treasury.cash.service"].open_session(
+                self.cash_box_fx,
+                self.env.user,
+                100.0,
+            )
+            self.assertEqual(session.currency_id, self.currency_xcx)
 
         def test_block_second_open_session(self):
             self.env["treasury.cash.service"].open_session(self.cash_box, self.env.user, 50.0)
@@ -97,3 +142,18 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(accountability.state, "confirmed")
             self.assertEqual(accountability.out_movement_id.state, "posted")
             self.assertEqual(accountability.in_movement_id.state, "posted")
+
+        def test_create_accountability_in_foreign_currency(self):
+            accountability = self.env["treasury.cash.accountability"].create(
+                {
+                    "name": "Prestacao Caixa FX",
+                    "company_id": self.env.company.id,
+                    "source_portador_id": self.portador_fx.id,
+                    "target_portador_id": self.target_portador_fx.id,
+                    "amount": 80.0,
+                    "currency_id": self.currency_xcx.id,
+                }
+            )
+            accountability.action_confirm()
+            self.assertEqual(accountability.out_movement_id.currency_id, self.currency_xcx)
+            self.assertEqual(accountability.in_movement_id.currency_id, self.currency_xcx)

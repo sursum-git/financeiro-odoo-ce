@@ -30,6 +30,30 @@ if __name__.startswith("odoo.addons."):
                     "company_id": cls.env.company.id,
                 }
             )
+            cls.currency_usd = cls.env["res.currency"].create(
+                {
+                    "name": "XUS",
+                    "symbol": "X$",
+                    "rounding": 0.01,
+                }
+            )
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": fields.Date.context_today(cls),
+                    "currency_id": cls.currency_usd.id,
+                    "company_id": cls.env.company.id,
+                    "rate": 0.2,
+                }
+            )
+            cls.portador_usd = cls.env["financial.portador"].create(
+                {
+                    "name": "Portador Dolar",
+                    "code": "PORT_USD",
+                    "type": "interno",
+                    "company_id": cls.env.company.id,
+                    "currency_id": cls.currency_usd.id,
+                }
+            )
 
         def _create_account(self, code="CTA1", name="Conta Financeira", company=None):
             company = company or self.env.company
@@ -150,6 +174,68 @@ if __name__.startswith("odoo.addons."):
             service.post_movement(in_move)
             service.post_movement(out_move)
             self.assertEqual(service.compute_balance(account=account), 100.0)
+
+        def test_multicurrency_movement_uses_portador_currency(self):
+            account = self._create_account(code="MCUR")
+            movement = self.env["treasury.movement.service"].create_movement(
+                {
+                    "name": "Entrada em Dolar",
+                    "type": "entrada",
+                    "amount": 50.0,
+                    "account_id": account.id,
+                    "portador_id": self.portador_usd.id,
+                    "history_id": self.history.id,
+                    "reason_id": self.reason.id,
+                    "company_id": self.env.company.id,
+                }
+            )
+            self.env["treasury.movement.service"].post_movement(movement)
+            expected_company_amount = self.portador_usd.currency_id._convert(
+                50.0,
+                self.env.company.currency_id,
+                self.env.company,
+                movement.date,
+            )
+            self.assertEqual(movement.currency_id, self.currency_usd)
+            self.assertAlmostEqual(movement.amount_company_currency, expected_company_amount, places=2)
+            self.assertAlmostEqual(
+                movement.signed_amount_company_currency,
+                expected_company_amount,
+                places=2,
+            )
+
+        def test_compute_balance_by_currency(self):
+            account = self._create_account(code="MCUR_BAL")
+            service = self.env["treasury.movement.service"]
+            brl_move = service.create_movement(
+                {
+                    "name": "Entrada Local",
+                    "type": "entrada",
+                    "amount": 80.0,
+                    "account_id": account.id,
+                    "portador_id": self.portador.id,
+                    "history_id": self.history.id,
+                    "reason_id": self.reason.id,
+                    "company_id": self.env.company.id,
+                }
+            )
+            usd_move = service.create_movement(
+                {
+                    "name": "Entrada USD",
+                    "type": "entrada",
+                    "amount": 40.0,
+                    "account_id": account.id,
+                    "portador_id": self.portador_usd.id,
+                    "history_id": self.history.id,
+                    "reason_id": self.reason.id,
+                    "company_id": self.env.company.id,
+                }
+            )
+            service.post_movement(brl_move)
+            service.post_movement(usd_move)
+            balances = service.compute_balance_by_currency(account=account)
+            self.assertEqual(balances[self.env.company.currency_id.id], 80.0)
+            self.assertEqual(balances[self.currency_usd.id], 40.0)
 
         def test_intercompany_loan_generates_two_movements(self):
             borrower_company = self.env["res.company"].create(

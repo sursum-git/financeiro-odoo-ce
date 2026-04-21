@@ -64,6 +64,17 @@ if __name__.startswith("odoo.addons."):
                     "is_definitive": True,
                 }
             )
+            cls.currency_xre = cls.env["res.currency"].create(
+                {"name": "XRE", "symbol": "XR$", "rounding": 0.01}
+            )
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": "2026-05-10",
+                    "currency_id": cls.currency_xre.id,
+                    "company_id": cls.env.company.id,
+                    "rate": 0.2,
+                }
+            )
 
         def _create_title_with_installments(self):
             service = self.env["receivable.service"]
@@ -93,6 +104,23 @@ if __name__.startswith("odoo.addons."):
                     "partner_id": self.partner.id,
                     "company_id": self.env.company.id,
                     "amount_total": amount,
+                }
+            )
+            installment = service.generate_installments(
+                title,
+                [{"due_date": due_date, "amount": amount}],
+            )
+            return title, installment[0]
+
+        def _create_single_installment_title_in_currency(self, name, amount, due_date, currency):
+            service = self.env["receivable.service"]
+            title = service.open_title(
+                {
+                    "name": name,
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "amount_total": amount,
+                    "currency_id": currency.id,
                 }
             )
             installment = service.generate_installments(
@@ -363,3 +391,53 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(third.withholding_line_ids[0].previously_withheld_amount, 60.0)
             self.assertEqual(first_title.amount_open, 0.0)
             self.assertEqual(second_title.amount_open, 0.0)
+
+        def test_apply_settlement_in_foreign_currency(self):
+            service = self.env["receivable.service"]
+            _title, installment = self._create_single_installment_title_in_currency(
+                "Titulo Moeda Estrangeira", 100.0, "2026-05-10", self.currency_xre
+            )
+            settlement = service.create_settlement(
+                {
+                    "name": "Liquidacao Moeda Estrangeira",
+                    "date": "2026-05-10",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "currency_id": self.currency_xre.id,
+                },
+                [{"installment_id": installment.id, "principal_amount": 100.0}],
+            )
+            service.apply_settlement(settlement)
+            expected_company_amount = self.currency_xre._convert(
+                100.0,
+                self.env.company.currency_id,
+                self.env.company,
+                settlement.date,
+            )
+            self.assertEqual(settlement.currency_id, self.currency_xre)
+            self.assertEqual(settlement.gross_amount_total, 100.0)
+            self.assertEqual(settlement.net_amount_total, 100.0)
+            self.assertEqual(settlement.gross_amount_company_currency, expected_company_amount)
+            self.assertEqual(settlement.net_amount_company_currency, expected_company_amount)
+
+        def test_block_settlement_with_mixed_currencies(self):
+            service = self.env["receivable.service"]
+            _title_brl, installment_brl = self._create_single_installment_title(
+                "Titulo BRL", 50.0, "2026-05-10"
+            )
+            _title_xre, installment_xre = self._create_single_installment_title_in_currency(
+                "Titulo XRE", 50.0, "2026-05-10", self.currency_xre
+            )
+            with self.assertRaises(ValidationError):
+                service.create_settlement(
+                    {
+                        "name": "Liquidacao Mista",
+                        "date": "2026-05-10",
+                        "partner_id": self.partner.id,
+                        "company_id": self.env.company.id,
+                    },
+                    [
+                        {"installment_id": installment_brl.id, "principal_amount": 50.0},
+                        {"installment_id": installment_xre.id, "principal_amount": 50.0},
+                    ],
+                )

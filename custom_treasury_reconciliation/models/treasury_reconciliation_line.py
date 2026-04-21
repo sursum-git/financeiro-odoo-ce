@@ -9,6 +9,7 @@ class TreasuryReconciliationLine(models.Model):
 
     MSG_LINHA_UNICA = "Uma linha de extrato so pode estar vinculada a uma linha de conciliacao."
     MSG_LINHA_JA_CONCILIADA = "Esta linha de extrato ja esta conciliada."
+    MSG_MOEDA_DIVERGENTE = "A conciliacao exige extrato e movimento na mesma moeda."
 
     reconciliation_id = fields.Many2one(
         "treasury.reconciliation",
@@ -45,6 +46,13 @@ class TreasuryReconciliationLine(models.Model):
     )
     currency_id = fields.Many2one(
         related="statement_line_id.currency_id",
+        string="Moeda do Extrato",
+        store=True,
+        readonly=True,
+    )
+    movement_currency_id = fields.Many2one(
+        related="movement_id.currency_id",
+        string="Moeda do Movimento",
         store=True,
         readonly=True,
     )
@@ -67,3 +75,9 @@ class TreasuryReconciliationLine(models.Model):
         for line in self:
             if line.statement_line_id.is_reconciled and line.status != "matched":
                 raise ValidationError(self.MSG_LINHA_JA_CONCILIADA)
+
+    @api.constrains("statement_line_id", "movement_id")
+    def _check_currency_consistency(self):
+        for line in self.filtered(lambda rec: rec.statement_line_id and rec.movement_id):
+            if line.statement_line_id.currency_id != line.movement_id.currency_id:
+                raise ValidationError(self.MSG_MOEDA_DIVERGENTE)

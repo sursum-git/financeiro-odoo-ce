@@ -8,6 +8,7 @@
                 <field name="name"/>
                 <field name="cash_box_id"/>
                 <field name="user_id"/>
+                <field name="currency_id"/>
                 <field name="opening_amount"/>
                 <field name="closing_amount_computed"/>
                 <field name="difference_amount"/>
@@ -33,6 +34,7 @@
                         <field name="cash_box_id"/>
                         <field name="company_id"/>
                         <field name="user_id"/>
+                        <field name="currency_id"/>
                     </group>
                     <group>
                         <field name="opened_at"/>

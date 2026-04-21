@@ -9,9 +9,12 @@
                 <field name="date"/>
                 <field name="partner_id"/>
                 <field name="settlement_kind"/>
+                <field name="currency_id"/>
                 <field name="gross_amount_total"/>
+                <field name="gross_amount_company_currency" optional="hide"/>
                 <field name="withholding_amount_total"/>
                 <field name="net_amount_total"/>
+                <field name="net_amount_company_currency" optional="hide"/>
                 <field name="payment_method_id"/>
                 <field name="state"/>
             </list>
@@ -35,12 +38,18 @@
                         <field name="payment_method_id"/>
                         <field name="portador_id"/>
                         <field name="target_account_id"/>
+                        <field name="currency_id"/>
                         <field name="state"/>
                     </group>
                     <group>
+                        <field name="exchange_rate" readonly="1"/>
+                        <field name="company_currency_id" readonly="1"/>
                         <field name="gross_amount_total" readonly="1"/>
+                        <field name="gross_amount_company_currency" readonly="1"/>
                         <field name="withholding_amount_total" readonly="1"/>
+                        <field name="withholding_amount_company_currency" readonly="1"/>
                         <field name="net_amount_total" readonly="1"/>
+                        <field name="net_amount_company_currency" readonly="1"/>
                     </group>
                     <group>
                         <field name="notes"/>

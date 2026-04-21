@@ -49,6 +49,17 @@ if __name__.startswith("odoo.addons."):
                     "supplier_contact_id": cls.withholding_supplier.id,
                 }
             )
+            cls.currency_xpa = cls.env["res.currency"].create(
+                {"name": "XPA", "symbol": "XP$", "rounding": 0.01}
+            )
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": "2026-05-10",
+                    "currency_id": cls.currency_xpa.id,
+                    "company_id": cls.env.company.id,
+                    "rate": 0.25,
+                }
+            )
 
         def _create_title_with_installments(self):
             service = self.env["payable.service"]
@@ -78,6 +89,23 @@ if __name__.startswith("odoo.addons."):
                     "partner_id": self.partner.id,
                     "company_id": self.env.company.id,
                     "amount_total": amount,
+                }
+            )
+            installment = service.generate_installments(
+                title,
+                [{"due_date": due_date, "amount": amount}],
+            )
+            return title, installment[0]
+
+        def _create_single_installment_title_in_currency(self, name, amount, due_date, currency):
+            service = self.env["payable.service"]
+            title = service.open_title(
+                {
+                    "name": name,
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "amount_total": amount,
+                    "currency_id": currency.id,
                 }
             )
             installment = service.generate_installments(
@@ -204,3 +232,53 @@ if __name__.startswith("odoo.addons."):
             self.assertEqual(third.net_amount_total, 90.0)
             self.assertEqual(third.withholding_line_ids[0].base_amount, 700.0)
             self.assertEqual(third.withholding_line_ids[0].previously_withheld_amount, 60.0)
+
+        def test_apply_payment_in_foreign_currency(self):
+            service = self.env["payable.service"]
+            _title, installment = self._create_single_installment_title_in_currency(
+                "Titulo Moeda Estrangeira", 80.0, "2026-05-10", self.currency_xpa
+            )
+            payment = service.create_payment(
+                {
+                    "name": "Pagamento Moeda Estrangeira",
+                    "date": "2026-05-10",
+                    "partner_id": self.partner.id,
+                    "company_id": self.env.company.id,
+                    "currency_id": self.currency_xpa.id,
+                },
+                [{"installment_id": installment.id, "principal_amount": 80.0}],
+            )
+            service.apply_payment(payment)
+            expected_company_amount = self.currency_xpa._convert(
+                80.0,
+                self.env.company.currency_id,
+                self.env.company,
+                payment.date,
+            )
+            self.assertEqual(payment.currency_id, self.currency_xpa)
+            self.assertEqual(payment.gross_amount_total, 80.0)
+            self.assertEqual(payment.net_amount_total, 80.0)
+            self.assertEqual(payment.gross_amount_company_currency, expected_company_amount)
+            self.assertEqual(payment.net_amount_company_currency, expected_company_amount)
+
+        def test_block_payment_with_mixed_currencies(self):
+            service = self.env["payable.service"]
+            _title_brl, installment_brl = self._create_single_installment_title(
+                "Titulo BRL", 50.0, "2026-05-10"
+            )
+            _title_xpa, installment_xpa = self._create_single_installment_title_in_currency(
+                "Titulo XPA", 50.0, "2026-05-10", self.currency_xpa
+            )
+            with self.assertRaises(ValidationError):
+                service.create_payment(
+                    {
+                        "name": "Pagamento Misto",
+                        "date": "2026-05-10",
+                        "partner_id": self.partner.id,
+                        "company_id": self.env.company.id,
+                    },
+                    [
+                        {"installment_id": installment_brl.id, "principal_amount": 50.0},
+                        {"installment_id": installment_xpa.id, "principal_amount": 50.0},
+                    ],
+                )

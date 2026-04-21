@@ -16,6 +16,13 @@ class ReceivableSettlement(models.Model):
     MSG_CHEQUE_TOTAL_DIVERGENTE = (
         "A soma dos cheques de terceiros deve ser igual ao valor total substituido."
     )
+    MSG_LIQUIDACAO_MOEDA_UNICA = (
+        "A liquidacao deve conter apenas parcelas na mesma moeda."
+    )
+    MSG_LIQUIDACAO_MOEDA_DIVERGENTE = (
+        "A moeda da liquidacao deve ser igual a moeda das parcelas selecionadas."
+    )
+    MSG_TAXA_CAMBIO_POSITIVA = "A taxa de cambio deve ser maior que zero."
 
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
@@ -81,9 +88,37 @@ class ReceivableSettlement(models.Model):
         currency_field="currency_id",
     )
     currency_id = fields.Many2one(
+        "res.currency",
+        string="Moeda da Transacao",
+        required=True,
+        default=lambda self: self.env.company.currency_id,
+        ondelete="restrict",
+    )
+    company_currency_id = fields.Many2one(
         related="company_id.currency_id",
+        string="Moeda da Empresa",
         store=True,
         readonly=True,
+    )
+    exchange_rate = fields.Float(
+        compute="_compute_company_amounts",
+        store=True,
+        digits=(16, 8),
+    )
+    gross_amount_company_currency = fields.Monetary(
+        compute="_compute_company_amounts",
+        store=True,
+        currency_field="company_currency_id",
+    )
+    withholding_amount_company_currency = fields.Monetary(
+        compute="_compute_company_amounts",
+        store=True,
+        currency_field="company_currency_id",
+    )
+    net_amount_company_currency = fields.Monetary(
+        compute="_compute_company_amounts",
+        store=True,
+        currency_field="company_currency_id",
     )
 
     @api.depends("line_ids.total_amount", "withholding_line_ids.amount")
@@ -96,6 +131,51 @@ class ReceivableSettlement(models.Model):
             settlement.gross_amount_total = gross
             settlement.withholding_amount_total = withheld
             settlement.net_amount_total = gross - withheld
+
+    @api.depends(
+        "currency_id",
+        "company_id",
+        "company_currency_id",
+        "date",
+        "gross_amount_total",
+        "withholding_amount_total",
+        "net_amount_total",
+    )
+    def _compute_company_amounts(self):
+        for settlement in self:
+            company_currency = settlement.company_currency_id
+            currency = settlement.currency_id or company_currency
+            date = settlement.date or fields.Date.context_today(self)
+            if not company_currency or not currency:
+                settlement.exchange_rate = 1.0
+                settlement.gross_amount_company_currency = settlement.gross_amount_total
+                settlement.withholding_amount_company_currency = settlement.withholding_amount_total
+                settlement.net_amount_company_currency = settlement.net_amount_total
+                continue
+            settlement.gross_amount_company_currency = currency._convert(
+                settlement.gross_amount_total,
+                company_currency,
+                settlement.company_id,
+                date,
+            )
+            settlement.withholding_amount_company_currency = currency._convert(
+                settlement.withholding_amount_total,
+                company_currency,
+                settlement.company_id,
+                date,
+            )
+            settlement.net_amount_company_currency = currency._convert(
+                settlement.net_amount_total,
+                company_currency,
+                settlement.company_id,
+                date,
+            )
+            if currency == company_currency or not settlement.net_amount_total:
+                settlement.exchange_rate = 1.0
+            else:
+                settlement.exchange_rate = (
+                    settlement.net_amount_company_currency / settlement.net_amount_total
+                )
 
     @api.constrains("settlement_kind", "third_party_check_line_ids", "line_ids")
     def _check_third_party_checks(self):
@@ -112,3 +192,18 @@ class ReceivableSettlement(models.Model):
             check_total = sum(settlement.third_party_check_line_ids.mapped("amount"))
             if round(check_total - settlement.gross_amount_total, 2) != 0:
                 raise ValidationError(self.MSG_CHEQUE_TOTAL_DIVERGENTE)
+
+    @api.constrains("line_ids", "currency_id")
+    def _check_currency_consistency(self):
+        for settlement in self:
+            line_currencies = settlement.line_ids.mapped("currency_id")
+            if len(line_currencies) > 1:
+                raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_UNICA)
+            if line_currencies and settlement.currency_id and line_currencies[0] != settlement.currency_id:
+                raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_DIVERGENTE)
+
+    @api.constrains("exchange_rate")
+    def _check_exchange_rate(self):
+        for settlement in self:
+            if settlement.exchange_rate <= 0:
+                raise ValidationError(self.MSG_TAXA_CAMBIO_POSITIVA)

@@ -27,6 +27,12 @@ class ReceivableService(models.AbstractModel):
     MSG_CHEQUE_TOTAL_DIVERGENTE = (
         "Os valores dos cheques de terceiros devem ser iguais ao saldo substituido."
     )
+    MSG_LIQUIDACAO_MOEDA_UNICA = (
+        "A liquidacao deve conter apenas parcelas na mesma moeda."
+    )
+    MSG_LIQUIDACAO_MOEDA_DIVERGENTE = (
+        "A moeda da liquidacao deve ser igual a moeda das parcelas selecionadas."
+    )
 
     def _get_month_limits(self, target_date):
         target_date = fields.Date.to_date(target_date)
@@ -47,6 +53,7 @@ class ReceivableService(models.AbstractModel):
             [
                 ("partner_id", "=", settlement.partner_id.id),
                 ("company_id", "=", settlement.company_id.id),
+                ("currency_id", "=", settlement.currency_id.id),
                 ("state", "=", "applied"),
                 ("date", ">=", month_start),
                 ("date", "<=", month_end),
@@ -99,6 +106,11 @@ class ReceivableService(models.AbstractModel):
         return installments
 
     def create_settlement(self, vals, line_vals_list):
+        currency = self._extract_currency_from_installments(
+            [line_vals["installment_id"] for line_vals in line_vals_list]
+        )
+        if currency and not vals.get("currency_id"):
+            vals = dict(vals, currency_id=currency.id)
         settlement = self.env["receivable.settlement"].create(vals)
         for line_vals in line_vals_list:
             self.env["receivable.settlement.line"].create(
@@ -113,10 +125,25 @@ class ReceivableService(models.AbstractModel):
             )
         return settlement
 
+    def _extract_currency_from_installments(self, installment_ids):
+        installments = self.env["receivable.installment"].browse(list(installment_ids))
+        currencies = installments.mapped("currency_id")
+        if len(currencies) > 1:
+            raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_UNICA)
+        return currencies[:1]
+
+    def _validate_settlement_currency(self, settlement):
+        line_currencies = settlement.line_ids.mapped("currency_id")
+        if len(line_currencies) > 1:
+            raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_UNICA)
+        if line_currencies and settlement.currency_id != line_currencies[0]:
+            raise ValidationError(self.MSG_LIQUIDACAO_MOEDA_DIVERGENTE)
+
     def apply_settlement(self, settlement):
         settlement.ensure_one()
         if settlement.state != "draft":
             raise ValidationError(self.MSG_LIQUIDACAO_RASCUNHO)
+        self._validate_settlement_currency(settlement)
         if settlement.settlement_kind == "third_party_check":
             return self._apply_third_party_check_settlement(settlement)
         settlement.withholding_line_ids.unlink()
@@ -166,6 +193,7 @@ class ReceivableService(models.AbstractModel):
                     "origin_reference": source_title.name,
                     "species_id": species_check.id,
                     "amount_total": check_line.amount,
+                    "currency_id": settlement.currency_id.id,
                     "notes": check_line.notes or settlement.notes,
                     "source_settlement_id": settlement.id,
                     "source_title_id": source_title.id,

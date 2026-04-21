@@ -62,6 +62,30 @@ if __name__.startswith("odoo.addons."):
                 }
             )
             cls.env["treasury.movement.service"].post_movement(cls.movement)
+            cls.currency_xrc = cls.env["res.currency"].create(
+                {"name": "XRC", "symbol": "XR$", "rounding": 0.01}
+            )
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": "2026-04-20",
+                    "currency_id": cls.currency_xrc.id,
+                    "company_id": cls.env.company.id,
+                    "rate": 0.2,
+                }
+            )
+            cls.fx_movement = cls.env["treasury.movement.service"].create_movement(
+                {
+                    "name": "Movimento Banco FX",
+                    "date": "2026-04-20",
+                    "company_id": cls.env.company.id,
+                    "type": "entrada",
+                    "amount": 100.0,
+                    "currency_id": cls.currency_xrc.id,
+                    "account_id": cls.account.id,
+                    "reason_id": cls.reason.id,
+                }
+            )
+            cls.env["treasury.movement.service"].post_movement(cls.fx_movement)
 
         def _create_reconciliation(self):
             return self.env["treasury.reconciliation"].create(
@@ -132,3 +156,12 @@ if __name__.startswith("odoo.addons."):
                 reconciliation=reconciliation,
             )
             self.assertTrue(self.movement.is_reconciled)
+
+        def test_block_reconciliation_with_different_currency(self):
+            reconciliation = self._create_reconciliation()
+            with self.assertRaises(ValidationError):
+                self.env["treasury.reconciliation.service"].match_line(
+                    self.statement_import.line_ids[0],
+                    self.fx_movement,
+                    reconciliation=reconciliation,
+                )

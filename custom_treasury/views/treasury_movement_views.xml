@@ -9,6 +9,9 @@
                 <field name="name"/>
                 <field name="type"/>
                 <field name="amount"/>
+                <field name="currency_id"/>
+                <field name="amount_company_currency"/>
+                <field name="company_currency_id"/>
                 <field name="account_id"/>
                 <field name="portador_id"/>
                 <field name="state"/>
@@ -30,6 +33,9 @@
                         <field name="type"/>
                         <field name="amount"/>
                         <field name="currency_id"/>
+                        <field name="exchange_rate" readonly="1"/>
+                        <field name="amount_company_currency" readonly="1"/>
+                        <field name="company_currency_id" readonly="1"/>
                         <field name="state"/>
                         <field name="is_reconciled"/>
                         <field name="active"/>

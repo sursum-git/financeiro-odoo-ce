@@ -12,6 +12,12 @@ class TreasuryCashAccountability(models.Model):
     MSG_CANCELAMENTO_SOMENTE_CONFIRMADA = (
         "Somente prestacoes de contas confirmadas podem ser canceladas."
     )
+    MSG_MOEDA_ORIGEM_DIVERGENTE = (
+        "A moeda da prestacao de contas deve ser igual a moeda do portador de origem."
+    )
+    MSG_MOEDA_DESTINO_DIVERGENTE = (
+        "O portador de destino deve usar a mesma moeda da prestacao de contas."
+    )
 
     name = fields.Char(required=True, index=True)
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
@@ -32,8 +38,10 @@ class TreasuryCashAccountability(models.Model):
     amount = fields.Monetary(required=True, currency_field="currency_id")
     currency_id = fields.Many2one(
         "res.currency",
+        string="Moeda da Transacao",
         required=True,
         default=lambda self: self.env.company.currency_id,
+        ondelete="restrict",
     )
     state = fields.Selection(
         [
@@ -61,11 +69,16 @@ class TreasuryCashAccountability(models.Model):
                 raise ValidationError(self.MSG_VALOR_POSITIVO)
             if not record.target_account_id and not record.target_portador_id:
                 raise ValidationError(self.MSG_DESTINO_OBRIGATORIO)
+            if record.source_portador_id.currency_id != record.currency_id:
+                raise ValidationError(self.MSG_MOEDA_ORIGEM_DIVERGENTE)
+            if record.target_portador_id and record.target_portador_id.currency_id != record.currency_id:
+                raise ValidationError(self.MSG_MOEDA_DESTINO_DIVERGENTE)
             out_move, in_move = record._cash_service.create_accountability(
                 source_portador=record.source_portador_id,
                 target_account=record.target_account_id,
                 target_portador=record.target_portador_id,
                 amount=record.amount,
+                currency=record.currency_id,
                 company=record.company_id,
                 name=record.name,
                 date=record.date,

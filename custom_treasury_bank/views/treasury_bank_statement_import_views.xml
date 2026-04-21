@@ -9,6 +9,7 @@
                 <field name="file_name"/>
                 <field name="bank_account_id"/>
                 <field name="company_id"/>
+                <field name="currency_id"/>
                 <field name="state"/>
             </list>
         </field>
@@ -31,6 +32,7 @@
                         <field name="file_data" filename="file_name"/>
                         <field name="company_id"/>
                         <field name="bank_account_id"/>
+                        <field name="currency_id"/>
                     </group>
                     <group>
                         <field name="notes"/>
