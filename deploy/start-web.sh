@@ -7,7 +7,7 @@ ODOO_DB_USER="${ODOO_DB_USER:-odoo}"
 ODOO_DB_PASSWORD="${ODOO_DB_PASSWORD:-odoo}"
 
 exec odoo \
-  -c /proj_edi_odoo/deploy/odoo-web.conf \
+  -c /proj_financeiro_odoo/deploy/odoo-web.conf \
   --db_host "${ODOO_DB_HOST}" \
   --db_port "${ODOO_DB_PORT}" \
   --db_user "${ODOO_DB_USER}" \

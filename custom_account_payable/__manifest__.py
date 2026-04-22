@@ -4,7 +4,7 @@
     "version": "19.0.1.0.0",
     "category": "Accounting",
     "license": "LGPL-3",
-    "author": "OpenAI",
+    "author": "Sursum Corda",
     "depends": [
         "custom_financial_base",
         "custom_treasury",

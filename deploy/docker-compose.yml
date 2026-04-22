@@ -3,7 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres:16
-    container_name: ${POSTGRES_CONTAINER:-edi-postgres}
+    container_name: ${POSTGRES_CONTAINER:-financeiro-postgres}
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-odoo}
@@ -18,64 +18,44 @@ services:
 
   odoo-web:
     image: odoo:19
-    container_name: ${ODOO_WEB_CONTAINER:-edi-odoo-web}
+    container_name: ${ODOO_WEB_CONTAINER:-financeiro-odoo-web}
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "${WEB_PORT:-8069}:8069"
     volumes:
-      - /proj_edi_odoo:/proj_edi_odoo
+      - /proj_financeiro_odoo:/proj_financeiro_odoo
       - odoo_web_data:/var/lib/odoo
     environment:
       ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
       ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
       ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
-    command: ["bash", "/proj_edi_odoo/deploy/start-web.sh"]
-    restart: unless-stopped
-
-  odoo-jobs:
-    image: odoo:19
-    container_name: ${ODOO_JOBS_CONTAINER:-edi-odoo-jobs}
-    depends_on:
-      db:
-        condition: service_healthy
-    ports:
-      - "${JOBS_PORT:-8071}:8071"
-    volumes:
-      - /proj_edi_odoo:/proj_edi_odoo
-      - odoo_jobs_data:/var/lib/odoo
-    environment:
-      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
-      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
-      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
-      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
-    command: ["bash", "/proj_edi_odoo/deploy/start-jobs.sh"]
+    command: ["bash", "/proj_financeiro_odoo/deploy/start-web.sh"]
     restart: unless-stopped
 
   odoo-tests:
     image: odoo:19
-    container_name: ${ODOO_TESTS_CONTAINER:-edi-odoo-tests}
+    container_name: ${ODOO_TESTS_CONTAINER:-financeiro-odoo-tests}
     depends_on:
       db:
         condition: service_healthy
     profiles: ["test"]
     volumes:
-      - /proj_edi_odoo:/proj_edi_odoo
+      - /proj_financeiro_odoo:/proj_financeiro_odoo
     environment:
       ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
       ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
       ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
-      ODOO_TEST_DB: ${ODOO_TEST_DB:-odoo_test}
-      ODOO_TEST_MODULES: ${ODOO_TEST_MODULES:-edi_framework,queue_job}
+      ODOO_TEST_DB: ${ODOO_TEST_DB:-odoo_test_financeiro}
+      ODOO_TEST_MODULES: ${ODOO_TEST_MODULES:-custom_financial_base,custom_treasury,custom_treasury_cash,custom_treasury_bank,custom_account_receivable,custom_account_payable,custom_financial_integration,custom_treasury_reconciliation,custom_account_receivable_collection,custom_financial_reports}
       ODOO_TEST_TAGS: ${ODOO_TEST_TAGS:-}
       ODOO_TEST_HTTP_PORT: ${ODOO_TEST_HTTP_PORT:-8090}
-    command: ["bash", "/proj_edi_odoo/deploy/run-tests.sh"]
+    command: ["bash", "/proj_financeiro_odoo/deploy/run-tests.sh"]
     restart: "no"
 
 volumes:
   postgres_data:
   odoo_web_data:
-  odoo_jobs_data:

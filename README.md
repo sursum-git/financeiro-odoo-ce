@@ -102,7 +102,7 @@ Regras atuais:
 Exemplo de carga dos módulos:
 
 ```bash
-odoo -c /proj_edi_odoo/deploy/odoo-test.conf \
+odoo -c /proj_financeiro_odoo/deploy/odoo-test.conf \
   --db_host db --db_port 5432 --db_user odoo --db_password odoo \
   --database odoo_financial \
   --init custom_financial_base,custom_treasury,custom_treasury_cash,custom_treasury_bank,custom_account_receivable,custom_account_payable,custom_financial_integration,custom_treasury_reconciliation,custom_account_receivable_collection,custom_financial_reports
@@ -115,7 +115,7 @@ As fases foram validadas individualmente e também em conjunto.
 Validacao integrada dos módulos do projeto:
 
 ```bash
-odoo -c /proj_edi_odoo/deploy/odoo-test.conf \
+odoo -c /proj_financeiro_odoo/deploy/odoo-test.conf \
   --db_host db --db_port 5432 --db_user odoo --db_password odoo \
   --database odoo_test_financial_suite_integrated_scoped \
   --init custom_financial_base,custom_treasury,custom_treasury_cash,custom_treasury_bank,custom_account_receivable,custom_account_payable,custom_financial_integration,custom_treasury_reconciliation,custom_account_receivable_collection,custom_financial_reports \
