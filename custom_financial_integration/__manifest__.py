@@ -1,8 +1,8 @@
 {
-    "name": "Financial Integration",
-    "summary": "Central integration between treasury, receivable and payable",
+    "name": "Integracao Financeira",
+    "summary": "Integracao central entre tesouraria, receber e pagar",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

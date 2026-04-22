@@ -1,8 +1,8 @@
 {
-    "name": "Financial Reports",
-    "summary": "Read-only financial reports and analytical queries",
+    "name": "Relatorios Financeiros",
+    "summary": "Relatorios financeiros e consultas analiticas somente leitura",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

@@ -1,8 +1,8 @@
 {
-    "name": "Account Receivable",
-    "summary": "Receivable titles, installments, settlements and renegotiation",
+    "name": "Contas a Receber",
+    "summary": "Titulos a receber, parcelas, liquidacoes e renegociacao",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

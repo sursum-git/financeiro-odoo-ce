@@ -34,11 +34,11 @@ class PayableTitle(models.Model):
     )
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("open", "Open"),
-            ("partial", "Partial"),
-            ("paid", "Paid"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("open", "Aberto"),
+            ("partial", "Parcial"),
+            ("paid", "Pago"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -53,7 +53,7 @@ class PayableTitle(models.Model):
     installment_ids = fields.One2many(
         "payable.installment",
         "title_id",
-        string="Installments",
+        string="Parcelas",
     )
 
     @api.depends("installment_ids.amount_open", "installment_ids.state")

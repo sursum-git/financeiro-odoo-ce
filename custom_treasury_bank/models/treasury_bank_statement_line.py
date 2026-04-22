@@ -38,8 +38,8 @@ class TreasuryBankStatementLine(models.Model):
     )
     type = fields.Selection(
         [
-            ("credit", "Credit"),
-            ("debit", "Debit"),
+            ("credit", "Credito"),
+            ("debit", "Debito"),
         ],
         required=True,
         index=True,

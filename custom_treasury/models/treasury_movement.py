@@ -21,7 +21,7 @@ class TreasuryMovement(models.Model):
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     company_id = fields.Many2one(
         "res.company",
-        string="Company",
+        string="Empresa",
         required=True,
         default=lambda self: self.env.company,
         index=True,
@@ -81,9 +81,9 @@ class TreasuryMovement(models.Model):
     origin_record_id = fields.Integer(index=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("posted", "Posted"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("posted", "Postado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -92,19 +92,19 @@ class TreasuryMovement(models.Model):
     is_reconciled = fields.Boolean(default=False, index=True)
     reversed_movement_id = fields.Many2one(
         "treasury.movement",
-        string="Reversed Movement",
+        string="Movimento Estornado",
         ondelete="restrict",
     )
     reverse_move_ids = fields.One2many(
         "treasury.movement",
         "reversed_movement_id",
-        string="Reverse Movements",
+        string="Movimentos de Estorno",
     )
     active = fields.Boolean(default=True)
     payment_line_ids = fields.One2many(
         "treasury.movement.payment.line",
         "movement_id",
-        string="Payment Lines",
+        string="Linhas de Pagamento",
     )
     signed_amount = fields.Monetary(
         compute="_compute_signed_amount",

@@ -1,8 +1,8 @@
 {
-    "name": "Account Receivable Collection",
-    "summary": "Operational collection flow for account receivable",
+    "name": "Cobranca de Contas a Receber",
+    "summary": "Fluxo operacional de cobranca para contas a receber",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

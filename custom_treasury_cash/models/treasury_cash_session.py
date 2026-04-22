@@ -52,10 +52,10 @@ class TreasuryCashSession(models.Model):
     difference_reason = fields.Char()
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("open", "Open"),
-            ("closed", "Closed"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("open", "Aberto"),
+            ("closed", "Fechado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -71,7 +71,7 @@ class TreasuryCashSession(models.Model):
     line_ids = fields.One2many(
         "treasury.cash.session.line",
         "session_id",
-        string="Session Movements",
+        string="Movimentos da Sessao",
     )
 
     @api.depends("opening_amount", "line_ids.movement_id.state", "line_ids.movement_id.signed_amount")

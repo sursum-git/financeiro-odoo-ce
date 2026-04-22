@@ -7,5 +7,5 @@ class ResPartner(models.Model):
     withholding_line_ids = fields.One2many(
         "res.partner.withholding.line",
         "partner_id",
-        string="Withholding Lines",
+        string="Linhas de Retencao",
     )

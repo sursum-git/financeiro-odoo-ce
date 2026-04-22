@@ -37,10 +37,10 @@ class ReceivableCollectionAssignment(models.Model):
     )
     state = fields.Selection(
         [
-            ("assigned", "Assigned"),
-            ("collected", "Collected"),
-            ("accounted", "Accounted"),
-            ("cancelled", "Cancelled"),
+            ("assigned", "Atribuido"),
+            ("collected", "Cobrado"),
+            ("accounted", "Prestado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="assigned",

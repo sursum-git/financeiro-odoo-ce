@@ -20,7 +20,7 @@
                     </group>
                     <group string="Contas a Receber">
                         <button name="action_open_receivable_open_position" type="object" string="Posicao em Aberto" class="btn-primary"/>
-                        <button name="action_open_receivable_aging" type="object" string="Aging de Vencidos"/>
+                        <button name="action_open_receivable_aging" type="object" string="Vencidos por Faixa"/>
                         <button name="action_open_receivable_settlement_history" type="object" string="Historico de Liquidacoes"/>
                     </group>
                     <group string="Cobranca">
@@ -42,9 +42,9 @@
 
     <menuitem
         id="menu_financial_reports_receivable"
-        name="Contas a Receber"
-        parent="custom_financial_reports.custom_financial_reports_menu_root"
+        name="Relatorios"
+        parent="custom_account_receivable.custom_account_receivable_menu_root"
         action="action_financial_reports_receivable"
-        sequence="20"
+        sequence="70"
     />
 </odoo>

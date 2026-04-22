@@ -15,14 +15,14 @@ class FinancialWithholdingCode(models.Model):
     name = fields.Char(required=True, index=True)
     code = fields.Char(required=True, index=True)
     description = fields.Text()
-    due_date = fields.Date(string="Due Date")
+    due_date = fields.Date(string="Data de Vencimento")
     minimum_retention_amount = fields.Monetary(
-        string="Minimum Retention Amount",
+        string="Valor Minimo de Retencao",
         currency_field="currency_id",
         default=0.0,
     )
     minimum_payment_amount = fields.Monetary(
-        string="Minimum Payment Amount",
+        string="Valor Minimo de Pagamento",
         currency_field="currency_id",
         default=0.0,
     )
@@ -41,7 +41,7 @@ class FinancialWithholdingCode(models.Model):
     partner_line_ids = fields.One2many(
         "res.partner.withholding.line",
         "withholding_code_id",
-        string="Partner Lines",
+        string="Linhas de Contato",
     )
 
     _financial_withholding_code_company_uniq = models.Constraint(

@@ -25,10 +25,10 @@ class ReceivableInstallment(models.Model):
     )
     state = fields.Selection(
         [
-            ("open", "Open"),
-            ("partial", "Partial"),
-            ("paid", "Paid"),
-            ("cancelled", "Cancelled"),
+            ("open", "Aberto"),
+            ("partial", "Parcial"),
+            ("paid", "Pago"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="open",
@@ -42,7 +42,7 @@ class ReceivableInstallment(models.Model):
     settlement_line_ids = fields.One2many(
         "receivable.settlement.line",
         "installment_id",
-        string="Settlement Lines",
+        string="Linhas de Liquidacao",
     )
 
     @api.depends("amount", "settlement_line_ids.total_amount", "settlement_line_ids.settlement_id.state")

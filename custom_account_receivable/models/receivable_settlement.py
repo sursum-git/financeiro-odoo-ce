@@ -40,8 +40,8 @@ class ReceivableSettlement(models.Model):
     target_account_id = fields.Many2one("treasury.account", ondelete="restrict")
     settlement_kind = fields.Selection(
         [
-            ("standard", "Standard"),
-            ("third_party_check", "Third-Party Check"),
+            ("standard", "Padrao"),
+            ("third_party_check", "Cheque de Terceiros"),
         ],
         required=True,
         default="standard",
@@ -49,9 +49,9 @@ class ReceivableSettlement(models.Model):
     )
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("applied", "Applied"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("applied", "Aplicado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -61,17 +61,17 @@ class ReceivableSettlement(models.Model):
     line_ids = fields.One2many(
         "receivable.settlement.line",
         "settlement_id",
-        string="Settlement Lines",
+        string="Linhas de Liquidacao",
     )
     third_party_check_line_ids = fields.One2many(
         "receivable.settlement.check.line",
         "settlement_id",
-        string="Third-Party Checks",
+        string="Cheques de Terceiros",
     )
     withholding_line_ids = fields.One2many(
         "receivable.settlement.withholding",
         "settlement_id",
-        string="Withholding Lines",
+        string="Linhas de Retencao",
         readonly=True,
     )
     gross_amount_total = fields.Monetary(

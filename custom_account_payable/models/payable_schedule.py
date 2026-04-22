@@ -17,9 +17,9 @@ class PayableSchedule(models.Model):
     partner_id = fields.Many2one("res.partner", required=True, ondelete="restrict", index=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("scheduled", "Scheduled"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("scheduled", "Programado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",

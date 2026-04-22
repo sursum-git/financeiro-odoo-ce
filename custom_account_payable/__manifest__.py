@@ -1,8 +1,8 @@
 {
-    "name": "Account Payable",
-    "summary": "Payable titles, installments, schedules and payments",
+    "name": "Contas a Pagar",
+    "summary": "Titulos a pagar, parcelas, programacoes e pagamentos",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

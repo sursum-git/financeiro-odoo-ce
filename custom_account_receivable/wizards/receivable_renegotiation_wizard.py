@@ -42,7 +42,7 @@ class ReceivableRenegotiationWizard(models.TransientModel):
     installment_line_ids = fields.One2many(
         "receivable.renegotiation.wizard.line",
         "wizard_id",
-        string="New Installments",
+        string="Novas Parcelas",
     )
     new_amount_total = fields.Monetary(
         compute="_compute_new_amount_total",

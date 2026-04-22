@@ -13,15 +13,15 @@ class ReceivableRenegotiation(models.Model):
         "receivable_renegotiation_title_rel",
         "renegotiation_id",
         "title_id",
-        string="Source Titles",
+        string="Titulos de Origem",
     )
     new_title_id = fields.Many2one("receivable.title", ondelete="restrict")
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("done", "Done"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("done", "Concluido"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",

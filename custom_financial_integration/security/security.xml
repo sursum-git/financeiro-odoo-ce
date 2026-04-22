@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="group_financial_integration_user" model="res.groups">
-        <field name="name">Financial Integration User</field>
+        <field name="name">Integracao Financeira - Usuario</field>
         <field name="implied_ids" eval="[(4, ref('custom_treasury.group_treasury_user'))]"/>
     </record>
 
     <record id="group_financial_integration_manager" model="res.groups">
-        <field name="name">Financial Integration Manager</field>
+        <field name="name">Integracao Financeira - Gerente</field>
         <field name="implied_ids" eval="[(4, ref('custom_financial_integration.group_financial_integration_user'))]"/>
     </record>
 </odoo>

@@ -45,13 +45,13 @@ class ReceivableTitle(models.Model):
     )
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("open", "Open"),
-            ("partial", "Partial"),
-            ("paid", "Paid"),
-            ("cancelled", "Cancelled"),
-            ("renegotiated", "Renegotiated"),
-            ("substituted", "Substituted"),
+            ("draft", "Rascunho"),
+            ("open", "Aberto"),
+            ("partial", "Parcial"),
+            ("paid", "Pago"),
+            ("cancelled", "Cancelado"),
+            ("renegotiated", "Renegociado"),
+            ("substituted", "Substituido"),
         ],
         required=True,
         default="draft",
@@ -66,12 +66,12 @@ class ReceivableTitle(models.Model):
     installment_ids = fields.One2many(
         "receivable.installment",
         "title_id",
-        string="Installments",
+        string="Parcelas",
     )
     settlement_line_ids = fields.One2many(
         "receivable.settlement.line",
         "title_id",
-        string="Settlement Lines",
+        string="Linhas de Liquidacao",
     )
     source_settlement_id = fields.Many2one(
         "receivable.settlement",
@@ -86,7 +86,7 @@ class ReceivableTitle(models.Model):
     generated_check_title_ids = fields.One2many(
         "receivable.title",
         "source_title_id",
-        string="Generated Check Titles",
+        string="Titulos de Cheque Gerados",
     )
     replacement_title_id = fields.Many2one(
         "receivable.title",
@@ -104,10 +104,10 @@ class ReceivableTitle(models.Model):
     return_count = fields.Integer(default=0)
     check_status = fields.Selection(
         [
-            ("pending", "Pending"),
-            ("returned", "Returned"),
-            ("compensated", "Compensated"),
-            ("definitive_return", "Definitive Return"),
+            ("pending", "Pendente"),
+            ("returned", "Devolvido"),
+            ("compensated", "Compensado"),
+            ("definitive_return", "Devolucao Definitiva"),
         ],
         index=True,
     )

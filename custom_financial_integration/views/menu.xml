@@ -2,8 +2,8 @@
 <odoo>
     <menuitem
         id="custom_financial_integration_menu_root"
-        name="Integracao Financeira"
-        parent="custom_financial_base.custom_financial_base_menu_root"
+        name="Integracao"
+        parent="custom_treasury.custom_treasury_menu_root"
         sequence="70"
         groups="custom_financial_integration.group_financial_integration_user,custom_financial_integration.group_financial_integration_manager"
     />

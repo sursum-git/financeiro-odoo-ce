@@ -53,9 +53,9 @@ class ReceivableCollectionAccountability(models.Model):
     target_cash_box_id = fields.Many2one("treasury.cash.box", ondelete="restrict")
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("done", "Done"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("done", "Concluido"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -67,7 +67,7 @@ class ReceivableCollectionAccountability(models.Model):
         "receivable_collection_accountability_settlement_rel",
         "accountability_id",
         "settlement_id",
-        string="Settlements",
+        string="Liquidacoes",
     )
     source_portador_id = fields.Many2one(
         related="agent_id.portador_id",
@@ -79,7 +79,7 @@ class ReceivableCollectionAccountability(models.Model):
     assignment_ids = fields.One2many(
         "receivable.collection.assignment",
         "accountability_id",
-        string="Assignments",
+        string="Atribuicoes",
     )
 
     @api.depends("settlement_ids.net_amount_total")

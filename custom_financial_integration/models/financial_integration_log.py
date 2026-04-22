@@ -14,9 +14,9 @@ class FinancialIntegrationLog(models.Model):
     )
     level = fields.Selection(
         [
-            ("info", "Info"),
-            ("warning", "Warning"),
-            ("error", "Error"),
+            ("info", "Informacao"),
+            ("warning", "Aviso"),
+            ("error", "Erro"),
         ],
         required=True,
         default="info",

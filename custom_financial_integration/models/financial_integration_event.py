@@ -19,11 +19,11 @@ class FinancialIntegrationEvent(models.Model):
     )
     event_type = fields.Selection(
         [
-            ("receivable_settlement", "Receivable Settlement"),
-            ("payable_payment", "Payable Payment"),
-            ("reverse_receivable", "Reverse Receivable"),
-            ("reverse_payable", "Reverse Payable"),
-            ("transfer_portador", "Transfer Portador"),
+            ("receivable_settlement", "Liquidacao de Contas a Receber"),
+            ("payable_payment", "Pagamento de Contas a Pagar"),
+            ("reverse_receivable", "Estorno de Contas a Receber"),
+            ("reverse_payable", "Estorno de Contas a Pagar"),
+            ("transfer_portador", "Transferencia de Portador"),
         ],
         required=True,
         index=True,
@@ -33,9 +33,9 @@ class FinancialIntegrationEvent(models.Model):
     source_record_id = fields.Integer(required=True, index=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("done", "Done"),
-            ("failed", "Failed"),
+            ("draft", "Rascunho"),
+            ("done", "Concluido"),
+            ("failed", "Falha"),
         ],
         required=True,
         default="draft",
@@ -46,7 +46,7 @@ class FinancialIntegrationEvent(models.Model):
     log_ids = fields.One2many(
         "financial.integration.log",
         "event_id",
-        string="Logs",
+        string="Registros",
     )
 
     _financial_integration_event_uniq = models.Constraint(

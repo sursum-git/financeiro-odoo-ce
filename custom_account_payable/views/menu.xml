@@ -3,8 +3,7 @@
     <menuitem
         id="custom_account_payable_menu_root"
         name="Contas a Pagar"
-        parent="custom_financial_base.custom_financial_base_menu_root"
-        sequence="60"
+        sequence="90"
         groups="custom_account_payable.group_payable_user,custom_account_payable.group_payable_manager"
     />
 </odoo>

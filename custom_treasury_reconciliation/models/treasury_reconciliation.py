@@ -26,9 +26,9 @@ class TreasuryReconciliation(models.Model):
     date_end = fields.Date(required=True, index=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("in_progress", "In Progress"),
-            ("done", "Done"),
+            ("draft", "Rascunho"),
+            ("in_progress", "Em Andamento"),
+            ("done", "Concluido"),
         ],
         required=True,
         default="draft",
@@ -38,7 +38,7 @@ class TreasuryReconciliation(models.Model):
     line_ids = fields.One2many(
         "treasury.reconciliation.line",
         "reconciliation_id",
-        string="Reconciliation Lines",
+        string="Linhas de Conciliacao",
     )
 
     def _get_statement_line_domain(self):

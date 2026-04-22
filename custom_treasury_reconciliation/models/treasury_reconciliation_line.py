@@ -32,10 +32,10 @@ class TreasuryReconciliationLine(models.Model):
     )
     status = fields.Selection(
         [
-            ("pending", "Pending"),
-            ("matched", "Matched"),
-            ("divergent", "Divergent"),
-            ("adjusted", "Adjusted"),
+            ("pending", "Pendente"),
+            ("matched", "Conciliado"),
+            ("divergent", "Divergente"),
+            ("adjusted", "Ajustado"),
         ],
         required=True,
         default="pending",

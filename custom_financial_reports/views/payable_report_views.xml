@@ -33,9 +33,9 @@
 
     <menuitem
         id="menu_financial_reports_payable"
-        name="Contas a Pagar"
-        parent="custom_financial_reports.custom_financial_reports_menu_root"
+        name="Relatorios"
+        parent="custom_account_payable.custom_account_payable_menu_root"
         action="action_financial_reports_payable"
-        sequence="30"
+        sequence="50"
     />
 </odoo>

@@ -21,7 +21,7 @@ class TreasuryTransfer(models.Model):
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     company_id = fields.Many2one(
         "res.company",
-        string="Company",
+        string="Empresa",
         required=True,
         default=lambda self: self.env.company,
         index=True,
@@ -38,9 +38,9 @@ class TreasuryTransfer(models.Model):
     )
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("confirmed", "Confirmed"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("confirmed", "Confirmado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",

@@ -25,10 +25,10 @@ class PayableInstallment(models.Model):
     )
     state = fields.Selection(
         [
-            ("open", "Open"),
-            ("partial", "Partial"),
-            ("paid", "Paid"),
-            ("cancelled", "Cancelled"),
+            ("open", "Aberto"),
+            ("partial", "Parcial"),
+            ("paid", "Pago"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="open",
@@ -42,7 +42,7 @@ class PayableInstallment(models.Model):
     payment_line_ids = fields.One2many(
         "payable.payment.line",
         "installment_id",
-        string="Payment Lines",
+        string="Linhas de Pagamento",
     )
 
     @api.depends("amount", "payment_line_ids.total_amount", "payment_line_ids.payment_id.state")

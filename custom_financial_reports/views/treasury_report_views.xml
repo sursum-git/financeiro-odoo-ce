@@ -42,9 +42,9 @@
 
     <menuitem
         id="menu_financial_reports_treasury"
-        name="Tesouraria"
-        parent="custom_financial_reports.custom_financial_reports_menu_root"
+        name="Relatorios"
+        parent="custom_treasury.custom_treasury_menu_root"
         action="action_financial_reports_treasury"
-        sequence="10"
+        sequence="80"
     />
 </odoo>

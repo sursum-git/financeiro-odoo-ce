@@ -29,9 +29,9 @@ class PayablePayment(models.Model):
     source_portador_id = fields.Many2one("financial.portador", ondelete="restrict")
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("applied", "Applied"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("applied", "Aplicado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -41,12 +41,12 @@ class PayablePayment(models.Model):
     line_ids = fields.One2many(
         "payable.payment.line",
         "payment_id",
-        string="Payment Lines",
+        string="Linhas de Pagamento",
     )
     withholding_line_ids = fields.One2many(
         "payable.payment.withholding",
         "payment_id",
-        string="Withholding Lines",
+        string="Linhas de Retencao",
         readonly=True,
     )
     gross_amount_total = fields.Monetary(

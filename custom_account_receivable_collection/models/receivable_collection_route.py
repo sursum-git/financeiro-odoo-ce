@@ -16,10 +16,10 @@ class ReceivableCollectionRoute(models.Model):
     date = fields.Date(required=True, default=fields.Date.context_today, index=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("in_progress", "In Progress"),
-            ("done", "Done"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("in_progress", "Em Andamento"),
+            ("done", "Concluido"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -29,7 +29,7 @@ class ReceivableCollectionRoute(models.Model):
     assignment_ids = fields.One2many(
         "receivable.collection.assignment",
         "route_id",
-        string="Assignments",
+        string="Atribuicoes",
     )
 
     def action_open_assign_wizard(self):

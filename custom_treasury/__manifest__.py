@@ -1,8 +1,8 @@
 {
-    "name": "Treasury",
-    "summary": "Core treasury movements, accounts and transfers",
+    "name": "Tesouraria",
+    "summary": "Movimentos, contas e transferencias de tesouraria",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

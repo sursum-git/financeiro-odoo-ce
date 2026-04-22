@@ -12,10 +12,10 @@ class TreasuryAccount(models.Model):
     code = fields.Char(index=True)
     type = fields.Selection(
         [
-            ("bank", "Bank"),
-            ("cash_internal", "Cash Internal"),
-            ("treasury", "Treasury"),
-            ("other", "Other"),
+            ("bank", "Banco"),
+            ("cash_internal", "Caixa Interno"),
+            ("treasury", "Tesouraria"),
+            ("other", "Outro"),
         ],
         required=True,
         default="other",
@@ -23,7 +23,7 @@ class TreasuryAccount(models.Model):
     )
     company_id = fields.Many2one(
         "res.company",
-        string="Company",
+        string="Empresa",
         required=True,
         default=lambda self: self.env.company,
         index=True,
@@ -32,7 +32,7 @@ class TreasuryAccount(models.Model):
     modality_link_ids = fields.One2many(
         "treasury.account.modality",
         "account_id",
-        string="Modalities",
+        string="Modalidades",
     )
 
     _treasury_account_code_company_uniq = models.Constraint(

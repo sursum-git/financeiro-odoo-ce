@@ -1,8 +1,8 @@
 {
-    "name": "Treasury Bank",
-    "summary": "Banks, bank accounts and statement import",
+    "name": "Tesouraria Bancaria",
+    "summary": "Bancos, contas bancarias e importacao de extrato",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

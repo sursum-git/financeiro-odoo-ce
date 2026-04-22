@@ -1,8 +1,8 @@
 {
-    "name": "Treasury Reconciliation",
-    "summary": "Bank statement reconciliation against treasury movements",
+    "name": "Conciliacao de Tesouraria",
+    "summary": "Conciliacao de extrato bancario com movimentos de tesouraria",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

@@ -4,7 +4,7 @@
         <field name="name">receivable.check.compensation.wizard.form</field>
         <field name="model">receivable.check.compensation.wizard</field>
         <field name="arch" type="xml">
-            <form string="Compensate Third-Party Check">
+            <form string="Compensar Cheque de Terceiros">
                 <sheet>
                     <group>
                         <field name="title_id"/>
@@ -23,8 +23,8 @@
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
-                    <button string="Cancel" special="cancel"/>
+                    <button name="action_confirm" string="Confirmar" type="object" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
         </field>
@@ -34,7 +34,7 @@
         <field name="name">receivable.check.return.wizard.form</field>
         <field name="model">receivable.check.return.wizard</field>
         <field name="arch" type="xml">
-            <form string="Return Third-Party Check">
+            <form string="Devolver Cheque de Terceiros">
                 <sheet>
                     <group>
                         <field name="title_id"/>
@@ -51,8 +51,8 @@
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
-                    <button string="Cancel" special="cancel"/>
+                    <button name="action_confirm" string="Confirmar" type="object" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
         </field>

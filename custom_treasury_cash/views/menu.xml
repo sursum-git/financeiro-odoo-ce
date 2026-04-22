@@ -4,7 +4,7 @@
         id="custom_treasury_cash_menu_root"
         name="Caixa"
         parent="custom_treasury.custom_treasury_menu_root"
-        sequence="30"
+        sequence="40"
         groups="custom_treasury_cash.group_treasury_cash_user,custom_treasury_cash.group_treasury_cash_manager"
     />
 </odoo>

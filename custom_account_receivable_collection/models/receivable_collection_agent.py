@@ -28,12 +28,12 @@ class ReceivableCollectionAgent(models.Model):
     assignment_ids = fields.One2many(
         "receivable.collection.assignment",
         "agent_id",
-        string="Assignments",
+        string="Atribuicoes",
     )
     accountability_ids = fields.One2many(
         "receivable.collection.accountability",
         "agent_id",
-        string="Accountabilities",
+        string="Prestacoes de Contas",
     )
 
     @staticmethod

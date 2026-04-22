@@ -8,19 +8,19 @@ class ReceivableInterestRule(models.Model):
 
     name = fields.Char(required=True, index=True)
     interest_type = fields.Selection(
-        [("fixed", "Fixed"), ("percent", "Percent")],
+        [("fixed", "Fixo"), ("percent", "Percentual")],
         required=True,
         default="percent",
     )
     interest_value = fields.Float(default=0.0)
     fine_type = fields.Selection(
-        [("fixed", "Fixed"), ("percent", "Percent")],
+        [("fixed", "Fixo"), ("percent", "Percentual")],
         required=True,
         default="percent",
     )
     fine_value = fields.Float(default=0.0)
     discount_type = fields.Selection(
-        [("fixed", "Fixed"), ("percent", "Percent")],
+        [("fixed", "Fixo"), ("percent", "Percentual")],
         required=True,
         default="fixed",
     )

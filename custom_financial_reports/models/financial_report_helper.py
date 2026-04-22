@@ -5,7 +5,7 @@ class FinancialReportHelper(models.TransientModel):
     _name = "financial.report.helper"
     _description = "Financial Report Helper"
 
-    name = fields.Char(default="Financial Report")
+    name = fields.Char(default="Relatorio Financeiro")
     company_id = fields.Many2one(
         "res.company",
         required=True,
@@ -142,7 +142,7 @@ class FinancialReportHelper(models.TransientModel):
         if self.currency_id:
             domain.append(("currency_id", "=", self.currency_id.id))
         return self._readonly_action(
-            "Aging de Vencidos",
+            "Vencidos por Faixa",
             "receivable.installment",
             domain,
             view_mode="list,pivot,graph,form",

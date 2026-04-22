@@ -1,8 +1,8 @@
 {
-    "name": "Treasury Cash",
-    "summary": "Cash sessions, supply, withdrawal and accountability",
+    "name": "Caixa da Tesouraria",
+    "summary": "Sessoes de caixa, suprimento, sangria e prestacao de contas",
     "version": "19.0.1.0.0",
-    "category": "Accounting",
+    "category": "Financeiro",
     "license": "LGPL-3",
     "author": "Sursum Corda",
     "depends": [

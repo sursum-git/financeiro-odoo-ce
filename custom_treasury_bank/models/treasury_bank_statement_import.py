@@ -40,9 +40,9 @@ class TreasuryBankStatementImport(models.Model):
     )
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("imported", "Imported"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("imported", "Importado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",
@@ -52,7 +52,7 @@ class TreasuryBankStatementImport(models.Model):
     line_ids = fields.One2many(
         "treasury.bank.statement.line",
         "import_id",
-        string="Imported Lines",
+        string="Linhas Importadas",
     )
 
     def action_import_file(self):

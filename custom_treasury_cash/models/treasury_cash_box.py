@@ -22,7 +22,7 @@ class TreasuryCashBox(models.Model):
         index=True,
     )
     active = fields.Boolean(default=True)
-    session_ids = fields.One2many("treasury.cash.session", "cash_box_id", string="Sessions")
+    session_ids = fields.One2many("treasury.cash.session", "cash_box_id", string="Sessoes")
 
     _treasury_cash_box_code_company_uniq = models.Constraint(
         "unique(code, company_id)",

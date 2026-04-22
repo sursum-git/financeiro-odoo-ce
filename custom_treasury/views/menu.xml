@@ -1,22 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="custom_financial_base.custom_financial_base_menu_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="custom_financial_base.custom_financial_base_menu_config" model="ir.ui.menu">
+        <field name="name">Cadastros Gerais</field>
+        <field name="parent_id" ref="custom_treasury_menu_root"/>
+        <field name="sequence">10</field>
+    </record>
+
     <menuitem
         id="custom_treasury_menu_root"
-        name="Tesouraria"
-        parent="custom_financial_base.custom_financial_base_menu_root"
-        sequence="20"
+        name="Caixa e Bancos"
+        sequence="70"
         groups="custom_treasury.group_treasury_user,custom_treasury.group_treasury_manager"
     />
     <menuitem
         id="custom_treasury_menu_config"
-        name="Cadastros"
+        name="Cadastros de Tesouraria"
         parent="custom_treasury_menu_root"
-        sequence="10"
+        sequence="20"
     />
     <menuitem
         id="custom_treasury_menu_operations"
-        name="Operacoes"
+        name="Operacoes de Tesouraria"
         parent="custom_treasury_menu_root"
-        sequence="20"
+        sequence="30"
     />
 </odoo>

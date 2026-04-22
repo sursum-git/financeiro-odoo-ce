@@ -11,7 +11,7 @@ class TreasuryBank(models.Model):
     name = fields.Char(required=True, index=True)
     code = fields.Char(required=True, index=True)
     active = fields.Boolean(default=True)
-    account_ids = fields.One2many("treasury.bank.account", "bank_id", string="Bank Accounts")
+    account_ids = fields.One2many("treasury.bank.account", "bank_id", string="Contas Bancarias")
 
     _treasury_bank_code_uniq = models.Constraint(
         "unique(code)",

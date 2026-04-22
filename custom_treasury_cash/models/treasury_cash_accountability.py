@@ -45,9 +45,9 @@ class TreasuryCashAccountability(models.Model):
     )
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("confirmed", "Confirmed"),
-            ("cancelled", "Cancelled"),
+            ("draft", "Rascunho"),
+            ("confirmed", "Confirmado"),
+            ("cancelled", "Cancelado"),
         ],
         required=True,
         default="draft",

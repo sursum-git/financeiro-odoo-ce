@@ -15,12 +15,12 @@ class FinancialTitleSpecies(models.Model):
     kind = fields.Selection(
         [
             ("normal", "Normal"),
-            ("check", "Third-Party Check"),
-            ("bank_slip", "Bank Slip"),
-            ("promissory_note", "Promissory Note"),
-            ("customer_advance", "Customer Advance"),
-            ("supplier_advance", "Supplier Advance"),
-            ("other", "Other"),
+            ("check", "Cheque de Terceiros"),
+            ("bank_slip", "Boleto"),
+            ("promissory_note", "Nota Promissoria"),
+            ("customer_advance", "Adiantamento de Cliente"),
+            ("supplier_advance", "Adiantamento de Fornecedor"),
+            ("other", "Outro"),
         ],
         required=True,
         default="normal",
@@ -53,8 +53,8 @@ class FinancialCheckReturnReason(models.Model):
     code = fields.Char(required=True, index=True)
     description = fields.Text()
     is_definitive = fields.Boolean(
-        string="Definitive Return",
-        help="When enabled, the returned check cannot be represented again.",
+        string="Devolucao Definitiva",
+        help="Quando habilitado, o cheque devolvido nao pode ser reapresentado.",
     )
     active = fields.Boolean(default=True)
 

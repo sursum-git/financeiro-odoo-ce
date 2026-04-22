@@ -44,12 +44,12 @@ class TreasuryBankAccount(models.Model):
     modality_link_ids = fields.One2many(
         "treasury.bank.account.modality",
         "bank_account_id",
-        string="Modalities",
+        string="Modalidades",
     )
     statement_import_ids = fields.One2many(
         "treasury.bank.statement.import",
         "bank_account_id",
-        string="Statement Imports",
+        string="Importacoes de Extrato",
     )
 
     _treasury_bank_account_uniq = models.Constraint(

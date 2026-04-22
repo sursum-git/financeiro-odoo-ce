@@ -33,14 +33,14 @@
     </record>
 
     <record id="action_financial_integration_log" model="ir.actions.act_window">
-        <field name="name">Logs</field>
+        <field name="name">Registros</field>
         <field name="res_model">financial.integration.log</field>
         <field name="view_mode">list,form</field>
     </record>
 
     <menuitem
         id="menu_financial_integration_log"
-        name="Logs"
+        name="Registros"
         parent="custom_financial_integration.custom_financial_integration_menu_root"
         action="action_financial_integration_log"
         sequence="20"
